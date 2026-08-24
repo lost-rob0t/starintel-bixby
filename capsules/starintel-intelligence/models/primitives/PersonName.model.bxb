@@ -1,3 +1,3 @@
-text (PersonName) {
+name (PersonName) {
   description (A canonical or known person name.)
 }
