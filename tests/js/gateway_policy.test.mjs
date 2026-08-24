@@ -6,6 +6,8 @@ import {
   boundedDocumentLimit,
   buildDocumentSearchRequest,
   buildPersonResolveRequest,
+  normalizeDocumentSearchResult,
+  normalizePersonSearchResult,
   postJson,
   validateGatewayOrigin,
 } from '../../capsules/starintel-intelligence/code/lib/GatewayPolicy.js'
@@ -54,6 +56,58 @@ test('document request requires query or person context and emits only bounded p
     () => buildDocumentSearchRequest({ query: ' ', personId: ' ' }),
     error => error instanceof GatewayError && error.code === 'INVALID_REQUEST',
   )
+})
+
+test('person result strips unknown backend fields and preserves only one unambiguous profile', () => {
+  assert.deepEqual(normalizePersonSearchResult({
+    query: 'John Smith',
+    matches: [{ id: 'p1', name: 'John Smith', aliases: ['Johnny'], score: 0.9, couch_rev: 'secret' }],
+    profile: { id: 'p1', name: 'John Smith', summary: 'Public summary', raw_document: { secret: true } },
+    internal: { db: 'couch' },
+  }), {
+    query: 'John Smith',
+    matches: [{ id: 'p1', name: 'John Smith', aliases: ['Johnny'], score: 0.9 }],
+    profile: { id: 'p1', name: 'John Smith', summary: 'Public summary' },
+  })
+
+  assert.throws(
+    () => normalizePersonSearchResult({
+      query: 'John Smith',
+      matches: [{ id: 'p1', name: 'John Smith' }, { id: 'p2', name: 'John Smith' }],
+      profile: { id: 'p1', name: 'John Smith' },
+    }),
+    error => error instanceof GatewayError && error.code === 'INTERNAL_ERROR',
+  )
+})
+
+test('document result is bounded, strips unknown fields, and rejects private or raw API links', () => {
+  assert.deepEqual(normalizeDocumentSearchResult({
+    query: 'reports',
+    personId: 'p1',
+    documents: [
+      { id: 'd1', title: 'One', summary: 'S1', dtype: 'pdf', url: 'https://docs.example/documents/d1', couch_rev: 'secret' },
+      { id: 'd2', title: 'Two', url: 'https://docs.example/documents/d2' },
+    ],
+    internal: 'secret',
+  }, 1), {
+    query: 'reports',
+    personId: 'p1',
+    documents: [{ id: 'd1', title: 'One', summary: 'S1', dtype: 'pdf', url: 'https://docs.example/documents/d1' }],
+  })
+
+  for (const url of [
+    'https://quasar.star.intel/documents/d1',
+    'https://127.0.0.1/documents/d1',
+    'http://docs.example/documents/d1',
+    'https://docs.example/v1/document/d1',
+    'https://docs.example/api/document/d1',
+  ]) {
+    assert.throws(
+      () => normalizeDocumentSearchResult({ documents: [{ id: 'd1', title: 'One', url }] }, 5),
+      error => error instanceof GatewayError && error.code === 'INTERNAL_ERROR',
+      url,
+    )
+  }
 })
 
 test('postJson uses JSON POST with headers returned for explicit error handling', () => {
