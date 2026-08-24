@@ -71,8 +71,8 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
         self.assertIn("local-endpoint (SearchDocuments.js)", endpoints)
         self.assertNotIn("remote-endpoint", endpoints)
 
-    def test_training_covers_lookup_and_contextual_followups(self):
-        training = self.read("resources/en-US/training/intelligence.training.bxb")
+    def test_training_seed_covers_lookup_and_contextual_followups(self):
+        training = self.read("training/intelligence.aligned.txt")
         for phrase in (
             "Who is John Smith",
             "Who is this person",
@@ -82,6 +82,10 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
         ):
             self.assertIn(phrase, training)
         self.assertIn(":continue", training)
+
+    def test_does_not_fabricate_studio_generated_training_plans(self):
+        generated = list((CAPSULE / "resources").glob("**/*.training.bxb")) if (CAPSULE / "resources").exists() else []
+        self.assertEqual([], generated, "compiled Bixby training must come from Developer Studio")
 
     def test_document_view_uses_attribution_link_not_app_launch(self):
         view = self.read("resources/en-US/views/DocumentSearchResult.view.bxb")
