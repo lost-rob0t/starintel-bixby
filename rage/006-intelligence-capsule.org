@@ -106,3 +106,78 @@
 - Gateway implementation :: still prohibited until issue #8 freezes the complete capsule contract; =starintel-labs/starintel-infra#34= remains the owning infra epic.
 - Proprietary validation :: Bixby Developer Studio compile/training, Simulator, Developer Center registration/private submission, OAuth client registration, and Galaxy device execution have not been performed and are not claimed.
 - Outcome :: in progress pending an exact-head green gate for the harness-repaired branch, remaining issue #6 static/context/scope acceptance review, and canonical OAuth availability from =starintel-server#111=.
+
+* Iteration 2 — Intelligence authorization architecture correction
+** Analyze
+- User approval :: explicit approval granted for this research/design cycle; threat modeling required before implementation.
+- Samsung OAuth semantics :: current official Bixby documentation defines OAuth as optional. An endpoint uses no authorization unless its endpoint declaration explicitly attaches =authorization { user }= or =authorization { global }=. Therefore a Bixby remote/local web-service action does not intrinsically require OAuth.
+- Samsung secret handling :: when OAuth is used, Bixby stores the client secret in Developer Center Configuration & Secrets and =authorization.bxb= contains only the secret-key reference. This remains appropriate for future privileged Operations auth, not for public Intelligence.
+- Context minimization :: current Samsung endpoint documentation states remote endpoints automatically receive =$vivContext=. The current Intelligence implementation instead uses local JS actions and an explicit HTTP call, so the adapter can construct a narrow request and intentionally omit =$vivContext=, Samsung account/session context, and access tokens.
+- StarIntel public-read authority :: =lost-rob0t/starintel-server#109= already defines unauthenticated =GET /api/v1/search= and stats under a server-owned synthetic public-read context, with caller-supplied tenant/dataset widening forbidden, bounded result limits, and public-dataset configuration. This is the correct owning authority model for Intelligence.
+- Contradiction found :: issue #6 and the inherited static manifest required OAuth solely because the capsule would call StarIntel. That assumption is disproven by both current Samsung endpoint semantics and StarIntel's intentional public API design.
+
+** Design
+- Intelligence identity :: none. Person/document calls are public read-only operations and carry no user OAuth identity or capsule service identity.
+- Credential boundary :: no =authorization.bxb=, no OAuth client secret reference, no API key, no service token, and no Developer Center secret for Intelligence.
+- Principal boundary :: the gateway/server creates the only effective principal: a server-owned synthetic public-read context. Client request fields can never widen its dataset/tenant scope.
+- Bixby privacy boundary :: retain local JavaScript actions. They project Bixby inputs into the explicit person/document request contract and do not forward =$vivContext= or other ambient Bixby context.
+- Abuse controls :: bounded query/result sizes in capsule and server contracts; public-edge rate limiting and short caching where safe; fail-closed malformed input; no arbitrary dataset/tenant selectors; backend query compilation remains authorization-aware.
+- Data boundary :: person resolution and document search may return only data visible to the configured public context. Returned document URLs must remain public HTTPS and pass the capsule's existing private/internal/raw-route defenses.
+- Privileged split :: =starintel-server#111= is retargeted to =starintel-bixby#7=. Operations uses user-delegated OAuth for target and Auto-Dig authority, with backend authorization independent of Bixby confirmation.
+
+** Adversarial review / threat model
+*** Assets
+- private tenant/dataset documents and person data;
+- target/Auto-Dig mutation authority;
+- StarIntel internal topology and service credentials;
+- Bixby/Samsung user/session context;
+- service availability and public search capacity.
+
+*** Adversaries
+- anonymous Internet callers bypassing Bixby;
+- malicious or curious Bixby users attempting scope widening/enumeration;
+- automated scrapers/DoS clients;
+- malicious query/document content attempting injection or unsafe links;
+- future implementation drift that accidentally mixes Intelligence and Operations authority.
+
+*** Threats and controls
+- Scope widening / confused deputy :: caller-provided tenant/dataset fields are rejected/ignored at the owning server boundary; the synthetic public principal is server-owned and immutable by clients.
+- Credential theft/replay :: eliminated for Intelligence because there is no credential. Read-only request replay is idempotent and confers no additional authority.
+- Bixby privacy leakage :: local JS constructs the outbound request and =forwardVivContext=false= is a tested invariant; do not switch these actions to raw remote endpoints without re-running this threat model.
+- Scraping / resource exhaustion :: public access is intentionally scrapeable only within operator-defined public data; bound query/result sizes, rate-limit at the public edge, cache safe responses, and protect expensive backend search paths. IP-only rate limiting must not be assumed sufficient because Bixby infrastructure can aggregate callers.
+- Private-data enumeration :: public person/document routes must use the same synthetic public scope as =starintel-server#109= and never fall back to legacy authenticated/private search when a public result is absent.
+- Injection :: voice/query fields remain data, not routes/topology/shell identifiers; backend uses the authorization-aware query compiler and capsule request builders strip arbitrary fields.
+- SSRF/internal-route pivot :: gateway origin is configuration-only, HTTPS-only, and rejects private/internal hosts; user input cannot select the origin or route.
+- Response exfiltration / unsafe links :: result normalizers project only Bixby model fields and reject private/internal/raw API document URLs.
+- Privilege confusion :: Intelligence has no target/Auto-Dig models, routes, scopes, tokens, or authorization declarations. Operations remains a separate capsule with separate delegated authorization.
+- OAuth attack surface :: removing OAuth from Intelligence eliminates redirect, authorization-code interception, token refresh/revocation, credential stuffing, and account-linking failure modes from the public read path. Those threats remain explicitly owned by #111 for Operations.
+
+*** Rejected alternatives
+- OAuth for every Intelligence user :: rejected as unnecessary identity collection and token attack surface; it provides no authorization benefit for deliberately public data.
+- Global OAuth client-credentials / capsule service token :: rejected for Intelligence because it converts a public API into a shared-secret dependency without creating user authorization; compromise would create a reusable bearer credential and rotation burden.
+- Hard-coded API key in source :: rejected categorically.
+- Developer Center API-key secret for Intelligence :: supported technically by Samsung secret APIs but rejected architecturally because #109 intentionally defines a no-bearer public surface.
+- Raw Bixby remote endpoints :: rejected for this slice because automatic =$vivContext= forwarding increases ambient-data exposure and removes the explicit request-minimization boundary.
+
+** Decision gate
+- ACCEPT corrected architecture.
+- Intelligence authorization mode is =none=.
+- Public authority owner is =starintel-server#109= under =server-owned-synthetic-public-read-context=.
+- =$vivContext= forwarding is forbidden.
+- =starintel-server#111= no longer blocks #6 and is retained for privileged Operations #7.
+- This decision supersedes Iteration 1's deferred-OAuth assumption while preserving that earlier evidence as the reason the architecture was revisited.
+
+** Realize / TDD
+- Tests-first commit :: =1779e5a203046c9c57c528a529b58665db174b0b= changes only the structural authority test.
+- Expected RED :: CI #133 failed exactly at =test_intelligence_authority_is_public_auth_free_and_context_minimized=: expected authorization type =none= but inherited manifest still declared =oauth2-authorization-code=. The other 25 Python tests passed before the workflow stopped.
+- Minimum production commit :: =eded03c9eeb68cd556c4ab547c5d147128468b3c= changes =auth.requirements.json= to no authorization, no scopes, public authority =starintel-server#109=, synthetic-public principal mode, and =forwardVivContext=false=.
+- Documentation commit :: =6de72e4073f980ad04b5371f5eb83e9339b792a9= records the privacy/authority split in the Intelligence capsule README.
+- Issue correction :: starintel-bixby#6 now records the public/no-credential boundary and threat-model acceptance requirements.
+- Owning auth issue correction :: starintel-server#111 retargeted from Intelligence to privileged Operations and expanded with OAuth-specific threat-model requirements.
+- GREEN :: CI #135 PASS at exact implementation/documentation head =6de72e4073f980ad04b5371f5eb83e9339b792a9=.
+
+** Outcome
+- OAuth is no longer an Intelligence blocker.
+- Issue #6's capsule-side authorization architecture is solved and green.
+- Remaining external dependency for real public execution is the deliberately public StarIntel/gateway contract path, owned by #109 and the later contract/gateway phases, not an OAuth provider.
+- This log commit requires one final exact-head CI gate before PR #9 can merge.
