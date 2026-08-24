@@ -1,0 +1,22 @@
+action (ResolvePerson) {
+  description ("Resolve a person through the StarIntel backend without mutating state")
+  type (Search)
+  collect {
+    input-group (personReference) {
+      requires (OneOf)
+      collect {
+        input (query) {
+          type (PersonQuery)
+          min (Optional)
+          max (One)
+        }
+        input (person) {
+          type (PersonProfile)
+          min (Optional)
+          max (One)
+        }
+      }
+    }
+  }
+  output (PersonSearchResult)
+}
