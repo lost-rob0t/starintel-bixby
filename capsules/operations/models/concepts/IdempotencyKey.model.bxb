@@ -1,0 +1,3 @@
+text (IdempotencyKey) {
+  description (An opaque gateway-issued idempotency identity for retry-safe commits.)
+}
