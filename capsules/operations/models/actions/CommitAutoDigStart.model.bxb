@@ -1,0 +1,14 @@
+action (CommitAutoDigStart) {
+  description (Start Auto-Dig after explicit user confirmation and return immediately with a durable run identifier.)
+  type (Commit)
+  collect {
+    input (draft) {
+      type (AutoDigStartDraft)
+      min (Required) max (One)
+    }
+  }
+  confirm {
+    by (OperationConfirmation)
+  }
+  output (AutoDigRunReceipt)
+}
