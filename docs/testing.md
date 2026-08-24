@@ -33,12 +33,52 @@ As capsule work lands, these checks become the TDD-first executable gate.
   - StarIntel Intelligence
   - StarIntel Operations
 - Replace any development `playground` capsule IDs only in the submission/operator configuration path required for the registered namespace.
+- Record the exact registered Intelligence capsule ID before creating its OAuth client. Bixby's redirect URI is derived from the real capsule identity and must match the StarIntel OAuth client registration exactly.
 
-### 2. OAuth
+### 2. OAuth provider deployment and client registration
 
-For each capsule as required:
+The canonical StarIntel OAuth provider is implemented in `lost-rob0t/starintel-server` and merged at `4f2f70126bc59e18681844019460a33709e1eba6`. It owns `/oauth/authorize`, `/oauth/token`, StarIntel human principals, S256 PKCE, exact redirect validation, scope attenuation, one-time authorization codes, bearer-token verification and token lifecycle. The Bixby-specific Common Lisp add-on consumes this core authority; it does not implement a second auth system.
 
-- register the StarIntel OAuth authorization-code client;
+Before creating `authorization.bxb` for a real capsule:
+
+1. Deploy a `starintel-server` build containing merge `4f2f70126bc59e18681844019460a33709e1eba6` or a verified descendant at the intended public HTTPS OAuth origin. Do not infer deployment from Git history alone.
+2. Verify the public origin actually serves the provider endpoints over valid HTTPS. Do not use a private `.star.intel` hostname, private IP, or raw CouchDB/RabbitMQ endpoint.
+3. Register/confirm the real Intelligence capsule ID in Developer Center and derive the exact Bixby OAuth callback URI for that capsule.
+4. On the StarIntel server, load and configure the Bixby add-on through the normal Lisp init/operator path:
+
+   ```lisp
+   (in-package :star)
+   (load-addon :starintel-bixby)
+
+   (uiop:symbol-call
+    :star.addons.bixby
+    :configure-bixby
+    :public-base-url "https://<deployed-public-oauth-origin>"
+    :redirect-uri "https://<registered-bixby-callback>")
+   ```
+
+5. Create the real OAuth client explicitly. Client creation is deliberately not a load/reload side effect because it mints one-time secret material:
+
+   ```lisp
+   (multiple-value-bind (client secret)
+       (uiop:symbol-call
+        :star.addons.bixby
+        :create-bixby-oauth-client)
+     ;; Record the public client ID for authorization.bxb.
+     ;; Store SECRET immediately in Samsung Developer Center Secrets.
+     (values client secret))
+   ```
+
+6. Record the returned **public client ID**. Never commit the returned secret.
+7. In Developer Center Configuration & Secrets, create the named secret entry that will be referenced by `client-secret-key` in `authorization.bxb`, and store the one-time StarIntel client secret there.
+8. Only after the public origin, capsule ID/callback, client ID and Developer Center secret-key name are concrete should the capsule commit its real `authorization.bxb` and add optional user authorization to the Intelligence endpoints.
+9. Intelligence must request only `documents:read` and `search:read` (or the exact canonical read/search scope equivalents if the server contract changes). Do not grant target, Auto-Dig, ingest or admin authority.
+10. Operations must reuse the same StarIntel human-user identity architecture with only its required additional scopes; do not create a separate account system or capsule-global impersonation credential.
+
+The current repository intentionally keeps `authorization.bxb` absent while `auth.requirements.json.registrationComplete` is false. That is a truthful incomplete registration state, not permission to invent placeholder URLs/client IDs.
+
+For each capsule as required after registration:
+
 - configure the authorize endpoint and token endpoint expected by `authorization.bxb`;
 - enter the OAuth client secret in Developer Center Configuration & Secrets under the exact `client-secret-key` referenced by the capsule;
 - configure only the scopes assigned to that capsule;
@@ -46,7 +86,7 @@ For each capsule as required:
 - verify Operations cannot exceed its declared additional scopes;
 - verify reauthorization after revocation/expiry.
 
-Never paste StarIntel upstream service credentials into Developer Center capsule configuration. Those belong only on the server-side gateway deployment boundary.
+Never paste StarIntel upstream service credentials into Developer Center capsule configuration. Those belong only on the server-side deployment boundary.
 
 ### 3. Gateway configuration
 
@@ -65,6 +105,11 @@ Never paste StarIntel upstream service credentials into Developer Center capsule
 
 Required Intelligence Simulator scenarios:
 
+- guest exact person lookup without account linking;
+- signed-in person lookup using a real StarIntel human principal;
+- signed-in access to user-authorized data that is not visible to guest mode;
+- invalid/expired/revoked OAuth token produces reauthorization rather than silent guest downgrade;
+- insufficient read/search scope remains forbidden;
 - exact person lookup;
 - ambiguous same-name lookup and explicit selection;
 - person not found;
@@ -124,13 +169,15 @@ Use a single capsule per private revision where practical; Samsung warns that al
 
 Before claiming end-to-end readiness:
 
-- public DNS resolves only the intended Bixby gateway hostname;
-- TLS certificate is valid;
-- `GET /healthz` and `GET /readyz` behave as designed;
-- only intended `/v1/bixby/...` routes are public;
+- public DNS resolves only the intended Bixby/OAuth public hostnames;
+- TLS certificates are valid;
+- StarIntel `/oauth/authorize` and `/oauth/token` are reachable only at the intended public origin and use the registered callback/client contract;
+- `GET /healthz` and `GET /readyz` behave as designed once the Bixby gateway exists;
+- only intended `/v1/bixby/...` routes are public once the gateway exists;
 - unknown hostnames do not route to the gateway or another internal service;
 - private `.star.intel` names and backend addresses are absent from responses;
 - OAuth scopes are enforced server-side;
+- guest and authenticated-user cache/result paths cannot leak one user's private data to another;
 - target retry produces exactly one target;
 - Auto-Dig start returns a durable run ID promptly rather than waiting for completion;
 - correlation IDs propagate through gateway/upstream errors without leaking secrets.
@@ -145,6 +192,6 @@ For every manual Samsung test session record:
 - private revision ID if used;
 - Galaxy model + Bixby version;
 - scenarios exercised and pass/fail notes;
-- OAuth configuration identifiers only (never secret values);
+- OAuth public origin, client ID and Developer Center secret-key **name only** (never the secret value);
 - public gateway hostname;
 - exact backend/infra deployment commit tested.
