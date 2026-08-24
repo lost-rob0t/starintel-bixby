@@ -1,0 +1,3 @@
+text (TargetActor) {
+  description (A canonical StarIntel actor selected through server-side discovery.)
+}
