@@ -1,0 +1,14 @@
+{
+  "api_version": "v1",
+  "correlation_id": "bixby-person-001",
+  "status": "ok",
+  "person": {
+    "id": "starintel:person:ada-lovelace",
+    "name": "Ada Lovelace",
+    "aliases": ["Augusta Ada King"],
+    "summary": "Mathematician and writer.",
+    "role": "Mathematician",
+    "confidence": 0.99,
+    "supporting_records": ["starintel:document:ada-001"]
+  }
+}
