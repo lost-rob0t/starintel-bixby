@@ -1,0 +1,27 @@
+#+title: RAGE Work Log - StarIntel Bixby issue 6
+
+* Run identity
+- Consumed issue :: #6
+- Branch :: =rage/6-intelligence-capsule=
+- RAGE start commit :: =7c5034ef48f2c934d79be1f81773fafca3752ec8=
+- Start meaning :: Exact =main= merge commit after Phase-0 issue #4 completed. Immutable for this run.
+
+* Iteration 1
+** Research
+- Status :: in progress.
+- Authority :: issue #6 + parent epic #1 + merged Phase-0 docs are controlling. StarIntel Intelligence is read/search only.
+
+** Design
+- Pending issue-specific evidence.
+
+** Adversarial review
+- Pending.
+
+** TDD
+- Pending tests-first capsule structural/model/training/view slice.
+
+** Implementation
+- None yet.
+
+** Outcome
+- In progress.
