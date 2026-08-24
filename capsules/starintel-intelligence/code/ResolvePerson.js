@@ -1,3 +1,3 @@
-module.exports.function = function resolvePerson() {
+export default function resolvePerson() {
   throw new Error("GATEWAY_CONTRACT_NOT_FROZEN")
 }
