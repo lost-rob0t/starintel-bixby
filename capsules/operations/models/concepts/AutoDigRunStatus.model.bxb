@@ -1,0 +1,3 @@
+text (AutoDigRunStatus) {
+  description (A normalized Auto-Dig run state.)
+}
