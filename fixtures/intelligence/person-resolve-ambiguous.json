@@ -1,0 +1,23 @@
+{
+  "status": 200,
+  "request": {
+    "query": "John Smith"
+  },
+  "response": {
+    "query": "John Smith",
+    "matches": [
+      {
+        "id": "person-101",
+        "name": "John Smith",
+        "knownIdentifiers": ["public-record:js-101"],
+        "score": 0.82
+      },
+      {
+        "id": "person-202",
+        "name": "John Smith",
+        "knownIdentifiers": ["public-record:js-202"],
+        "score": 0.79
+      }
+    ]
+  }
+}

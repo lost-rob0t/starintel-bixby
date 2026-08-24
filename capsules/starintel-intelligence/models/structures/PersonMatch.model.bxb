@@ -1,0 +1,28 @@
+structure (PersonMatch) {
+  description (A ranked StarIntel person candidate. Multiple candidates require user disambiguation.)
+  property (id) {
+    type (PersonId)
+    min (Required)
+    max (One)
+  }
+  property (name) {
+    type (PersonName)
+    min (Required)
+    max (One)
+  }
+  property (aliases) {
+    type (PersonAlias)
+    min (Optional)
+    max (Many)
+  }
+  property (knownIdentifiers) {
+    type (PersonIdentifier)
+    min (Optional)
+    max (Many)
+  }
+  property (score) {
+    type (MatchScore)
+    min (Optional)
+    max (One)
+  }
+}

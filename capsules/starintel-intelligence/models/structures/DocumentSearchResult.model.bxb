@@ -1,0 +1,18 @@
+structure (DocumentSearchResult) {
+  description (A bounded normalized document result set.)
+  property (query) {
+    type (DocumentQuery)
+    min (Optional)
+    max (One)
+  }
+  property (personId) {
+    type (PersonId)
+    min (Optional)
+    max (One)
+  }
+  property (documents) {
+    type (DocumentHit)
+    min (Optional)
+    max (Many)
+  }
+}

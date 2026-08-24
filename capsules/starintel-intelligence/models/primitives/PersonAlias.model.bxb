@@ -1,0 +1,3 @@
+text (PersonAlias) {
+  description (A known alias for a resolved person.)
+}

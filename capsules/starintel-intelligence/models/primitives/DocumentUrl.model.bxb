@@ -1,0 +1,3 @@
+text (DocumentUrl) {
+  description (A canonical public HTTPS StarIntel or Quasar document URL.)
+}

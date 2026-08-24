@@ -1,0 +1,3 @@
+text (PersonIdentifier) {
+  description (A public known identifier useful for disambiguation.)
+}

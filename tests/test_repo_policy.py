@@ -32,6 +32,20 @@ class RepoPolicyTests(unittest.TestCase):
         with self.assertRaisesRegex(PolicyError, r"private/internal endpoint"):
             validate_tree(root)
 
+    def test_ignores_javascript_regex_source_that_only_looks_like_a_url(self):
+        root = self.make_tree({
+            "capsules/starintel-intelligence/code/policy.js":
+                r"const HTTPS_ORIGIN = /^https:\/\/([^/?#]+)\/?$/i;\n"
+        })
+        validate_tree(root)
+
+    def test_ignores_javascript_template_expression_that_is_not_a_literal_endpoint(self):
+        root = self.make_tree({
+            "capsules/starintel-intelligence/code/policy.js":
+                "const origin = `https://${authority}`;\n"
+        })
+        validate_tree(root)
+
     def test_rejects_committed_secret_like_assignment(self):
         root = self.make_tree({
             "capsules/starintel-operations/code/auth.js":

@@ -41,7 +41,13 @@ def _is_private_host(host: str) -> bool:
 
 def _check_internal_urls(path: Path, text: str) -> None:
     for match in URL_RE.finditer(text):
-        parsed = urlparse(match.group(0))
+        candidate = match.group(0)
+        if "\\" in candidate or "${" in candidate:
+            continue
+        try:
+            parsed = urlparse(candidate)
+        except ValueError:
+            raise PolicyError(f"{path}: malformed URL-like endpoint is forbidden")
         if parsed.hostname and _is_private_host(parsed.hostname):
             raise PolicyError(f"{path}: private/internal endpoint is forbidden")
 

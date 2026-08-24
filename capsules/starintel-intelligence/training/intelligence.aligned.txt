@@ -1,0 +1,8 @@
+# Aligned-NL source seeds. Bixby Developer Studio must compile these into generated training plans.
+[g:PersonSearchResult] Who is (John Smith)[v:PersonQuery]
+[g:PersonSearchResult] Tell me about (John Smith)[v:PersonQuery]
+[g:PersonSearchResult:continue] Who is this person
+[g:PersonSearchResult:continue] Tell me more about this person
+[g:DocumentSearchResult,r:SearchDocuments] Find documents about (John Smith)[v:PersonQuery]
+[g:DocumentSearchResult:continue] Show me documents about this person
+[g:DocumentSearchResult] Search documents for (public corruption)[v:DocumentQuery]

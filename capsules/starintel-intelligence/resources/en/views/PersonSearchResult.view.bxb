@@ -1,0 +1,44 @@
+result-view {
+  match {
+    PersonSearchResult (personResult)
+  }
+  message {
+    if (size(personResult.matches) > 1) {
+      template ("I found more than one person. Choose the one you mean.")
+    } else-if (exists(personResult.profile)) {
+      template ("#{value(personResult.profile.name)}")
+    } else {
+      template ("I couldn't resolve that person.")
+    }
+  }
+  render {
+    if (size(personResult.matches) > 1) {
+      list-of (personResult.matches) {
+        where-each (person) {
+          title-card {
+            title-area {
+              slot1 {
+                text {
+                  value ("#{value(person.name)}")
+                }
+              }
+            }
+          }
+        }
+      }
+    } else-if (exists(personResult.profile)) {
+      layout {
+        section {
+          title ("#{value(personResult.profile.name)}")
+          content {
+            paragraph {
+              value ("#{value(personResult.profile.summary)}")
+            }
+          }
+        }
+      }
+    } else {
+      nothing
+    }
+  }
+}

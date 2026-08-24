@@ -1,0 +1,3 @@
+text (DocumentId) {
+  description (A stable StarIntel document identifier.)
+}

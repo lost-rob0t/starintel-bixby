@@ -1,0 +1,3 @@
+name (PersonQuery) {
+  description (A user-supplied person lookup query.)
+}

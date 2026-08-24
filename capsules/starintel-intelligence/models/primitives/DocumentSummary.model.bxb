@@ -1,0 +1,3 @@
+text (DocumentSummary) {
+  description (A bounded backend-provided document summary.)
+}

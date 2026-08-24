@@ -1,0 +1,3 @@
+decimal (MatchScore) {
+  description (Backend ranking score used only to present candidate order.)
+}

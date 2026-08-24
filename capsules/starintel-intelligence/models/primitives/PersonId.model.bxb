@@ -1,0 +1,3 @@
+text (PersonId) {
+  description (A stable StarIntel person identifier.)
+}

@@ -1,0 +1,7 @@
+{
+  "authorizationType": "none",
+  "requiredScopes": [],
+  "publicAuthority": "starintel-server#109",
+  "principalMode": "server-owned-synthetic-public-read-context",
+  "forwardVivContext": false
+}

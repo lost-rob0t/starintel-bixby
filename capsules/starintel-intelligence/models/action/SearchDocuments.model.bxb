@@ -1,0 +1,27 @@
+action (SearchDocuments) {
+  description (Search public-linkable StarIntel documents without mutation authority.)
+  collect {
+    input (query) {
+      type (DocumentQuery)
+      min (Optional)
+      max (One)
+    }
+    input (personId) {
+      type (PersonId)
+      min (Optional)
+      max (One)
+    }
+    input (dtype) {
+      type (DocumentType)
+      min (Optional)
+      max (One)
+    }
+    input (limit) {
+      type (DocumentLimit)
+      min (Optional)
+      max (One)
+    }
+  }
+  output (DocumentSearchResult)
+  type (Search)
+}
