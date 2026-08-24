@@ -50,18 +50,23 @@
 
 ** Planned TDD / validation
 - This issue changes research/bootstrap authority, not production behavior; no fake behavior tests are added merely for coverage.
+- The repository had no exact-head CI gate, so a minimal security-policy harness was required before merge could satisfy project rules.
+- Tests-first candidate :: =7610d02525e75ed2c3a04d5067fb8a2103c152c9= added policy tests plus CI while intentionally omitting =tools/repo_policy.py=.
+- Expected RED :: local =python -m unittest discover -s tests -v= failed with =ModuleNotFoundError: No module named 'tools.repo_policy'=; GitHub Actions CI #89 / run 32701899486 also completed failure on the tests-only head.
+- Minimum implementation :: =713ef0d6435eece1bab348353f8e54a3755ebedd= added the validator only. It rejects private/internal HTTP endpoints and secret-like capsule assignments while allowing Developer Center =client-secret-key= references and public document URLs.
+- GREEN :: local focused suite passed 5/5 and repository validator passed; GitHub Actions CI #90 / run 32701958349 passed on exact implementation head.
 - Next capsule issues must establish deterministic static/model/fixture tests before Bixby implementation changes.
 - Pre-gateway gate requires two capsule roots, coherent model/action/view/training references, OAuth scope separation, transactional confirmation definitions, frozen versioned fixtures, and all locally available validations.
 - Proprietary Samsung validation remains manual and is specified in =docs/testing.md=.
-- Exact-head GitHub Actions required before merging this issue branch.
 
 ** Implementation
 - Added =docs/research.md= with official current Samsung sources and live StarIntel/Quasar/infra findings.
 - Added =docs/architecture.md= with evidence-derived boundaries/invariants/rejected alternatives/gates.
 - Added =docs/testing.md= with truthful local-vs-proprietary validation boundary and exact Developer Center/private submission/Simulator/Galaxy checklist.
+- Added repository-native exact-head CI and a TDD-backed policy validator protecting capsule/contract/fixture trees from private endpoint leakage and committed secret-like assignments.
 - No capsule runtime behavior or infra gateway code implemented in this research issue.
 
 ** Outcome
 - Research/design/adversarial phase complete.
 - The architecture is not disproven, but three backend capabilities remain intentionally unresolved for later owning-boundary work: target idempotency/user-facing actor discovery, durable Auto-Dig run lifecycle commands, and canonical public Quasar document origin/route.
-- Issue remains open until exact-head repository/CI gate and PR review complete.
+- Final log commit invalidates CI #90 as merge authority; exact-head CI must rerun green before merge.
