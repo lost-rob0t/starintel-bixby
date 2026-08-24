@@ -1,0 +1,51 @@
+structure (PersonProfile) {
+  description ("A normalized StarIntel person profile for Bixby presentation and conversational context")
+  property (id) {
+    type (PersonId)
+    min (Required)
+    max (One)
+    visibility (Public)
+  }
+  property (name) {
+    type (PersonName)
+    min (Required)
+    max (One)
+    visibility (Public)
+  }
+  property (aliases) {
+    type (PersonAlias)
+    min (Optional)
+    max (Many)
+    visibility (Public)
+  }
+  property (summary) {
+    type (core.Text)
+    min (Optional)
+    max (One)
+    visibility (Private)
+  }
+  property (role) {
+    type (core.Text)
+    min (Optional)
+    max (One)
+    visibility (Private)
+  }
+  property (organization) {
+    type (core.Text)
+    min (Optional)
+    max (One)
+    visibility (Private)
+  }
+  property (confidence) {
+    type (core.Decimal)
+    min (Optional)
+    max (One)
+    visibility (Private)
+  }
+  property (supportingRecords) {
+    type (core.Text)
+    min (Optional)
+    max (Many)
+    visibility (Private)
+  }
+}
