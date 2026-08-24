@@ -1,0 +1,8 @@
+structure (TargetReceipt) {
+  description (The receipt for a committed StarIntel target.)
+  property (targetId) { type (TargetId) min (Required) max (One) }
+  property (status) { type (OperationStatus) min (Required) max (One) }
+  property (actor) { type (TargetActor) min (Required) max (One) }
+  property (subject) { type (TargetSubject) min (Required) max (One) }
+  property (correlationId) { type (CorrelationId) min (Required) max (One) }
+}
