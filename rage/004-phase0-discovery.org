@@ -8,22 +8,60 @@
 
 * Iteration 1
 ** Research
-- Status :: in progress.
-- Authority :: GitHub remote state is authoritative. Parent epic #1 owns the Samsung/Bixby integration; infra epic starintel-labs/starintel-infra#34 owns the deployed gateway and must remain blocked until the capsule contract is frozen.
-- Scope :: current official Samsung/Bixby tooling + syntax; current StarIntel/Quasar/Auto-Dig/infra capability and ownership discovery only.
+- Authority :: GitHub remote state is authoritative. Parent epic #1 owns Samsung/Bixby integration; infra epic starintel-labs/starintel-infra#34 owns deployed gateway/ingress/secrets and is phase-blocked until the capsule contract is frozen.
+- Samsung current docs :: official Bixby Developer Center remains live and advertises Bixby Developer Studio 8.23.1-r24c.2843029. Current docs confirm =capsule.bxb=, =endpoints.bxb=, =authorization.bxb=, concept/action modeling, training compilation, result/confirmation views, continuation training, Configuration & Secrets, private submissions, Simulator and on-device testing.
+- OAuth :: =authorization.bxb= still supports user =oauth2-authorization-code= with a =client-secret-key= naming a Developer Center secret. Secret value must never enter this repository.
+- Transaction boundary :: =confirmation-view= remains current; =mode (Transactional)= requires a corresponding transactional action. This directly supports prepare -> confirmation -> commit.
+- Public links :: current Samsung guidance prefers =attribution-link= in most cases over automatically punching out of Bixby with =app-launch=.
+- Conversation :: continuation training remains a first-class mechanism for follow-up turns; selected-person/run context should use that rather than visual/screen inference.
+- Samsung manual boundary :: private submission and Galaxy on-device testing require registered Developer Center team/capsule namespace and compatible device. No proprietary Samsung validation was executed in this environment.
+- StarIntel server evidence :: at 8f6e50701081f0335c7552082dba5ff392b859e5 the server exposes =/openapi.json= and =/client-manifest.json= from a shared contract registry, with named generated client operations for the migrated surface. Legacy =/search=, document and target routes still exist outside the initial complete registry; gateway must prefer discovery/named operations and isolate unavoidable legacy routing in one adapter.
+- StarIntel request semantics :: bearer auth by default, allow-listed CORS, bounded JSON, =X-Correlation-ID=, =X-Request-Timeout-Ms=, and client-safe error envelopes are existing boundaries to preserve.
+- Target/actor evidence :: actor docs confirm legacy target =actor=/=target=/recurrence/options fields and local/external actor routing. Raw actor names can route to RabbitMQ internally, therefore Bixby cannot accept arbitrary actor/RMQ implementation identifiers. A canonical user-facing actor discovery/allow-list remains to be identified.
+- Target idempotency gap :: current Phase-0 evidence does not prove exactly-once creation under retry for the legacy target HTTP boundary. Operations commit must remain gated until owning-boundary idempotency is proven/fixed.
+- Quasar evidence :: at 560208d0906cf564dd59050bca9a0f9341a3c55d the real typed envelope is =quasar.control.v1=. It is actor-backed with a single-writer command actor and capability discovery.
+- Auto-Dig gap :: current core Quasar command registration proves workspace/document/graph operations but does not prove durable Auto-Dig run start/status/pause/resume/stop commands. UI/agent-supervisor code is not runtime authority. Missing lifecycle commands must be added at the owning control plane rather than emulated by the gateway.
+- Infra evidence :: =inventory/services.nix= is the service exposure source of truth; public services declare backend intent plus =publicName= and =edgeHost= and ingress derives Caddy routing. =.star.intel= is explicitly private and never public ACME/DNS.
+- Public document URL gap :: current infra inventory declares only public ingest. The docs' Quasar public hostname is a commented example, not deployed authority. Therefore no canonical public Quasar document origin/route is yet verified and no capsule/gateway may hard-code one.
+- Dedicated artifact :: =docs/research.md= records sources, confidence and consequences.
 
 ** Design
-- Pending evidence-derived design after research.
+- Dedicated artifact :: =docs/architecture.md=.
+- Two-capsule authority split remains valid: Intelligence read/search only; Operations receives narrowly additional target/Auto-Dig scopes.
+- Local JS endpoint adapters are preferred where Developer Center dynamic configuration/OAuth/error normalization is needed; they call the public gateway and never carry StarIntel upstream credentials.
+- Person/document/target/run concepts are Bixby presentation/wire contracts only.
+- Person/run follow-ups use continuation context but send stable IDs back to the gateway for revalidation.
+- Documents use attribution links by default; one server-side configured-origin link builder owns public URL generation after infra proves the origin/route.
+- Mutations use prepare -> transactional confirmation -> commit -> receipt. Gateway reauthorizes/revalidates at commit; confirmation is not itself authority.
+- Target actor/type values resolve against canonical metadata; arbitrary raw actor/RMQ values are rejected.
+- Auto-Dig contract may model desired operations, but integration stays capability-gated until owning typed commands exist.
+- Frozen =/v1/bixby/...= fixtures precede infra implementation.
 
 ** Adversarial review
-- Pending.
+- One privileged capsule :: rejected; expands read/search compromise into mutation authority.
+- Direct capsule-to-internal-StarIntel :: rejected; leaks/duplicates internal auth/routing and bypasses public boundary controls.
+- Hard-coded =quasar.starintel.actor= :: rejected; current infra only shows this as non-deployed example intent.
+- Browser/Playwright/DB/RabbitMQ Auto-Dig control :: rejected; none owns canonical durable run lifecycle.
+- Raw actor name from voice :: rejected; actor docs prove raw names can map to internal/external Rabbit routes.
+- Capsule-side idempotency token as sole dedupe :: rejected; network retry correctness belongs at owning target/run mutation boundary.
+- Auto-open browser for every document :: rejected; current Samsung punch-out guidance prefers explicit attribution links.
+- Visual interpretation of "this person" :: rejected for v1; continuation is conversational context only.
+- Threat focus for next slices :: ambiguous identity, scope escalation between capsules, stale/missing context, mutation replay, raw internal URL leakage, capability absence, timeout amplification, cross-user run access, and confirmation bypass.
 
 ** Planned TDD / validation
-- This issue is research/bootstrap authority rather than production behavior. Any executable/static validation added must be deterministic and fixture-first.
-- Exact-head repository checks and GitHub Actions required before merge.
+- This issue changes research/bootstrap authority, not production behavior; no fake behavior tests are added merely for coverage.
+- Next capsule issues must establish deterministic static/model/fixture tests before Bixby implementation changes.
+- Pre-gateway gate requires two capsule roots, coherent model/action/view/training references, OAuth scope separation, transactional confirmation definitions, frozen versioned fixtures, and all locally available validations.
+- Proprietary Samsung validation remains manual and is specified in =docs/testing.md=.
+- Exact-head GitHub Actions required before merging this issue branch.
 
 ** Implementation
-- None yet.
+- Added =docs/research.md= with official current Samsung sources and live StarIntel/Quasar/infra findings.
+- Added =docs/architecture.md= with evidence-derived boundaries/invariants/rejected alternatives/gates.
+- Added =docs/testing.md= with truthful local-vs-proprietary validation boundary and exact Developer Center/private submission/Simulator/Galaxy checklist.
+- No capsule runtime behavior or infra gateway code implemented in this research issue.
 
 ** Outcome
-- In progress.
+- Research/design/adversarial phase complete.
+- The architecture is not disproven, but three backend capabilities remain intentionally unresolved for later owning-boundary work: target idempotency/user-facing actor discovery, durable Auto-Dig run lifecycle commands, and canonical public Quasar document origin/route.
+- Issue remains open until exact-head repository/CI gate and PR review complete.
