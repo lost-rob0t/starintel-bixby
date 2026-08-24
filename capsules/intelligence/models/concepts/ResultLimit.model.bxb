@@ -1,0 +1,3 @@
+integer (ResultLimit) {
+  description (A bounded number of document results to return.)
+}
