@@ -1,0 +1,9 @@
+structure (AutoDigStartDraft) {
+  description (A prepared Auto-Dig start request that must be confirmed before commit.)
+  features { transaction }
+  property (draftId) { type (DraftId) min (Required) max (One) }
+  property (goal) { type (AutoDigGoal) min (Required) max (One) }
+  property (summary) { type (OperationSummary) min (Required) max (One) }
+  property (idempotencyKey) { type (IdempotencyKey) min (Required) max (One) }
+  property (correlationId) { type (CorrelationId) min (Required) max (One) }
+}
