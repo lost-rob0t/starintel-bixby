@@ -1,0 +1,28 @@
+result-view {
+  match {
+    AutoDigStatus (status) {
+      min (Required) max (One)
+    }
+  }
+  message {
+    if (status.available) {
+      template ("Auto-Dig is available.")
+    } else {
+      template ("Auto-Dig control is unavailable right now.")
+    }
+  }
+  render {
+    layout {
+      section {
+        title ("Auto-Dig")
+        content {
+          if (status.available) {
+            paragraph ("Available controls: #{value(status.capabilities)}")
+          } else {
+            paragraph ("The authoritative Auto-Dig control plane is unavailable.")
+          }
+        }
+      }
+    }
+  }
+}
