@@ -1,0 +1,13 @@
+transaction-support {
+  match {
+    TargetDraft (this)
+  }
+  confirm-on-abandon {
+    message ("Discard this prepared StarIntel target?")
+    on-retain {
+      goal {
+        CommitTarget
+      }
+    }
+  }
+}
