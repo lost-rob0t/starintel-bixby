@@ -1,0 +1,24 @@
+result-view {
+  match {
+    TargetReceipt (receipt) {
+      min (Required) max (One)
+    }
+  }
+  message ("Created the StarIntel target for #{value(receipt.subject)} with #{value(receipt.actor)}.")
+  render {
+    layout {
+      section {
+        title ("Target created")
+        content {
+          paragraph ("#{value(receipt.subject)}")
+          single-line {
+            text {
+              value ("Actor: #{value(receipt.actor)} • Status: #{value(receipt.status)}")
+              style (Detail_L)
+            }
+          }
+        }
+      }
+    }
+  }
+}
