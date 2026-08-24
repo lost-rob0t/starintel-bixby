@@ -1,0 +1,27 @@
+#+title: RAGE Closeout - StarIntel Bixby issue 6
+
+* Continuation of run
+- Consumed issue :: #6
+- Primary work log :: =rage/006-intelligence-capsule.org=
+- Immutable RAGE start :: =7c5034ef48f2c934d79be1f81773fafca3752ec8=
+
+* Final authority decision
+- StarIntel Intelligence is public/read-only and requires no OAuth, service token, API key, or Developer Center secret.
+- Public requests execute under the server-owned synthetic public-read context owned by =lost-rob0t/starintel-server#109=.
+- =$vivContext= forwarding is forbidden for the Intelligence adapter.
+- Privileged user-delegated OAuth remains owned by =lost-rob0t/starintel-server#111= for StarIntel Operations issue #7.
+- Threat model, rejected alternatives, RED/GREEN evidence, and decision gate are preserved in the primary work log.
+
+* Verification and merge
+- Tests-first RED :: CI #133 on =1779e5a203046c9c57c528a529b58665db174b0b= failed exactly on the inherited OAuth authorization type.
+- Implementation GREEN :: CI #135 passed at =6de72e4073f980ad04b5371f5eb83e9339b792a9=.
+- Exact final candidate :: =279fa453e9c0a300632b1ce6c1e9dc6bb37ede62=.
+- Exact-head CI :: #136 PASS.
+- PR :: #9 =RAGE #6: StarIntel Intelligence capsule=.
+- PR review/conversation :: no submitted review/comment blockers.
+- Final merge SHA :: =4eb2af4bd07c3f0173cbcfcb6abd4e725afae424=.
+- Issue outcome :: #6 closed completed by the merge.
+
+* Queue handoff
+- #7 is the next capsule implementation issue after #6, but its privileged auth integration explicitly depends on =lost-rob0t/starintel-server#111=.
+- Public StarIntel execution for Intelligence remains aligned with =lost-rob0t/starintel-server#109= and later frozen-contract/gateway phases; OAuth is not an Intelligence dependency.
