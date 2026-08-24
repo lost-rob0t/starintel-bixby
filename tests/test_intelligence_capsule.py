@@ -32,6 +32,17 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
                 self.assertNotIn("module.exports", action)
                 self.assertNotIn("require(", action)
 
+    def test_natural_language_strings_use_name_not_opaque_text(self):
+        for relative, declaration in (
+            ("models/primitives/PersonQuery.model.bxb", "name (PersonQuery)"),
+            ("models/primitives/PersonName.model.bxb", "name (PersonName)"),
+            ("models/primitives/DocumentQuery.model.bxb", "name (DocumentQuery)"),
+        ):
+            with self.subTest(model=relative):
+                model = self.read(relative)
+                self.assertIn(declaration, model)
+                self.assertNotIn("text (", model)
+
     def test_actions_use_configured_public_gateway_and_only_read_only_bixby_routes(self):
         resolve = self.read("code/ResolvePerson.js")
         documents = self.read("code/SearchDocuments.js")
@@ -65,9 +76,9 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
 
     def test_person_contract_models_exist(self):
         required = {
-            "models/primitives/PersonQuery.model.bxb": "text (PersonQuery)",
+            "models/primitives/PersonQuery.model.bxb": "name (PersonQuery)",
             "models/primitives/PersonId.model.bxb": "text (PersonId)",
-            "models/primitives/PersonName.model.bxb": "text (PersonName)",
+            "models/primitives/PersonName.model.bxb": "name (PersonName)",
             "models/structures/PersonMatch.model.bxb": "structure (PersonMatch)",
             "models/structures/PersonProfile.model.bxb": "structure (PersonProfile)",
             "models/structures/PersonSearchResult.model.bxb": "structure (PersonSearchResult)",
