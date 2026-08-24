@@ -1,0 +1,41 @@
+result-view {
+  match {
+    AutoDigRunList (result) {
+      min (Required) max (One)
+    }
+  }
+  message {
+    if (size(result.runs) == 0) {
+      template ("There are no Auto-Dig runs to show.")
+    } else {
+      template ("I found #{size(result.runs)} Auto-Dig runs.")
+    }
+  }
+  render {
+    if (size(result.runs) == 0) {
+      nothing
+    } else {
+      layout {
+        section {
+          title ("Auto-Dig runs")
+          content {
+            partitioned {
+              content {
+                for-each (result.runs) {
+                  as (run) {
+                    single-line {
+                      text {
+                        value ("#{value(run.runId)} — #{value(run.status)}")
+                        style (Detail_L)
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
