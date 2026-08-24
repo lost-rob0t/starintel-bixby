@@ -42,7 +42,7 @@ def _is_private_host(host: str) -> bool:
 def _check_internal_urls(path: Path, text: str) -> None:
     for match in URL_RE.finditer(text):
         candidate = match.group(0)
-        if "\\" in candidate:
+        if "\\" in candidate or "${" in candidate:
             continue
         try:
             parsed = urlparse(candidate)
