@@ -1,0 +1,13 @@
+transaction-support {
+  match {
+    AutoDigStartDraft (this)
+  }
+  confirm-on-abandon {
+    message ("Discard this prepared Auto-Dig run?")
+    on-retain {
+      goal {
+        CommitAutoDigStart
+      }
+    }
+  }
+}
