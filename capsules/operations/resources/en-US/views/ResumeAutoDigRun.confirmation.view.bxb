@@ -1,0 +1,14 @@
+confirmation-view {
+  match {
+    OperationConfirmation {
+      confirming {
+        ResumeAutoDigRun (action)
+      }
+    }
+  }
+  message ("Resume this Auto-Dig run?")
+  mode (PositiveEmphasis)
+  render {
+    nothing
+  }
+}
