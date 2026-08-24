@@ -107,6 +107,36 @@ export function boundedDocumentLimit(value) {
   return Math.max(1, Math.min(10, Math.trunc(parsed)))
 }
 
+function optionalText(value) {
+  if (value === undefined || value === null) return undefined
+  const text = String(value).trim()
+  return text || undefined
+}
+
+export function buildPersonResolveRequest(query) {
+  const cleanQuery = optionalText(query)
+  if (!cleanQuery) {
+    throw new GatewayError('INVALID_REQUEST', 'A person query is required.')
+  }
+  return { query: cleanQuery }
+}
+
+export function buildDocumentSearchRequest(input = {}) {
+  const query = optionalText(input.query)
+  const personId = optionalText(input.personId)
+  const dtype = optionalText(input.dtype)
+  if (!query && !personId) {
+    throw new GatewayError('INVALID_REQUEST', 'A document query or selected person is required.')
+  }
+
+  const request = {}
+  if (query) request.query = query
+  if (personId) request.personId = personId
+  if (dtype) request.dtype = dtype
+  request.limit = boundedDocumentLimit(input.limit)
+  return request
+}
+
 function safeErrorCode(status, parsed) {
   const upstream = parsed && typeof parsed === 'object'
     ? (parsed.error && typeof parsed.error === 'object' ? parsed.error.code : parsed.code)
@@ -170,6 +200,8 @@ export function postJson(httpClient, origin, path, body) {
 export default {
   GatewayError,
   boundedDocumentLimit,
+  buildDocumentSearchRequest,
+  buildPersonResolveRequest,
   postJson,
   validateGatewayOrigin,
 }
