@@ -1,0 +1,19 @@
+{
+  "api_version": "v1",
+  "correlation_id": "bixby-person-002",
+  "status": "ambiguous",
+  "matches": [
+    {
+      "id": "starintel:person:john-smith-1",
+      "name": "John Smith",
+      "summary": "Candidate one",
+      "confidence": 0.71
+    },
+    {
+      "id": "starintel:person:john-smith-2",
+      "name": "John Smith",
+      "summary": "Candidate two",
+      "confidence": 0.69
+    }
+  ]
+}
