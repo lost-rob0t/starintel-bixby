@@ -46,6 +46,13 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
         self.assertIn("/v1/bixby/documents/search", documents)
         self.assertIn("buildDocumentSearchRequest", documents)
 
+    def test_actions_normalize_gateway_results_before_returning_to_bixby(self):
+        resolve = self.read("code/ResolvePerson.js")
+        documents = self.read("code/SearchDocuments.js")
+        self.assertIn("normalizePersonSearchResult", resolve)
+        self.assertIn("normalizeDocumentSearchResult", documents)
+        self.assertIn("request.limit", documents)
+
     def test_person_contract_models_exist(self):
         required = {
             "models/primitives/PersonQuery.model.bxb": "text (PersonQuery)",
