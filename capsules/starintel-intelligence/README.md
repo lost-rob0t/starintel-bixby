@@ -6,4 +6,8 @@ This capsule intentionally has no target or Auto-Dig mutation authority. The dev
 
 The aligned-NL files under `training/` are source seeds only. Bixby Developer Studio generates opaque `plan` data in compiled `*.training.bxb` files; those generated plans are not fabricated in CI.
 
-The endpoint modules are fail-closed placeholders in the first TDD slice. They are replaced only after tests specify the configured public gateway adapter behavior. Concrete `authorization.bxb` is also withheld until a real public StarIntel OAuth authorize/token authority exists; fake OAuth URLs are forbidden.
+The local JavaScript endpoints use Bixby JavaScript Runtime 2 and read the public gateway origin from Developer Center configuration key `starintel.gateway.origin`. They call only the read-only `/v1/bixby/person/resolve` and `/v1/bixby/documents/search` boundaries, clamp document result limits, normalize responses to the Bixby models, and reject private/internal gateway or document URLs.
+
+The required user authority for this capsule is limited to `starintel.read` and `starintel.search`. A concrete `authorization.bxb` remains intentionally withheld until StarIntel exposes a real public OAuth 2 authorization-code authority with concrete authorize/token endpoints. Current Samsung syntax requires those real provider endpoints; fake OAuth URLs are forbidden. Developer Center stores the eventual client secret value; this repository may contain only the configured secret-key reference, never the secret itself.
+
+Samsung Developer Studio compilation, Simulator validation, Developer Center registration/private submission, OAuth client registration, and Galaxy on-device validation remain manual gates and are not claimed by repository CI.
