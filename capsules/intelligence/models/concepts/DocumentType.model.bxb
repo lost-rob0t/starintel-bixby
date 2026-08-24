@@ -1,0 +1,3 @@
+text (DocumentType) {
+  description (A StarIntel document dtype filter or result type.)
+}
