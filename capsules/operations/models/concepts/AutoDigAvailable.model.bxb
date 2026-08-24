@@ -1,0 +1,3 @@
+boolean (AutoDigAvailable) {
+  description (Whether the authoritative Auto-Dig control plane is available.)
+}
