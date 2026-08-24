@@ -1,6 +1,6 @@
 # StarIntel Bixby research
 
-Status: Phase 0 evidence for issue #4. This document records current official Samsung/Bixby behavior and current StarIntel/Quasar/infra authority boundaries. It is not evidence of Simulator, private-submission, Developer Center, or on-device execution.
+Status: Phase 0 evidence for issue #4, with issue #11 dual-mode authentication re-check. This document records current official Samsung/Bixby behavior and current StarIntel/Quasar/infra authority boundaries. It is not evidence of Simulator, private-submission, Developer Center, or on-device execution.
 
 ## Samsung/Bixby — current official findings
 
@@ -15,6 +15,9 @@ Primary sources:
 - https://corp.bixbydevelopers.com/dev/docs/reference/type/endpoints
 - https://corp.bixbydevelopers.com/dev/docs/reference/type/authorization
 - https://corp.bixbydevelopers.com/dev/docs/reference/capsule-config
+- https://bixbydevelopers.com/dev/docs/dev-guide/developers/modeling.actions.using-oauth
+- https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/modeling.actions.configuring-endpoints
+- https://bixbydevelopers.com/dev/docs/dev-guide/release-notes/sdk.2020-Q1-SDK-Release-Notes
 - https://corp.bixbydevelopers.com/dev/docs/get-started/quick-start
 - https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/creating-ui.building-views.views
 - https://corp.bixbydevelopers.com/dev/docs/reference/type/confirmation-view
@@ -38,16 +41,33 @@ Bixby models remain concept/action based. Training examples bind natural utteran
 
 The `client-secret-key` is a lookup key for a secret entered in Developer Center Configuration & Secrets. The secret value must not be committed to this repository.
 
-Decision for StarIntel: use user OAuth 2 authorization-code unless later Developer Center constraints falsify it. Keep three identities distinct:
+Current endpoint authorization is opt-in. An action endpoint with no authorization annotation does not use OAuth. Samsung also documents **optional user OAuth** for endpoints: the endpoint can use `authorization: user: optional`, which does not automatically force login. Local JavaScript can detect whether `$vivContext.accessToken` exists, use ordinary `http` methods for anonymous execution, use `http.oauth*` methods for signed-in execution, and throw an `authorization-error` to trigger login/reauthorization when an authenticated credential is invalid or revoked.
 
-1. Bixby/Samsung user authorization context;
-2. Bixby gateway service identity;
-3. gateway-to-StarIntel/Quasar upstream service identity.
+Important privacy consequence: `$vivContext` contains Samsung/Bixby runtime context and must not be forwarded wholesale. For StarIntel, local JavaScript should inspect only the presence of the managed access token needed to select authenticated transport. It must not treat `$vivContext.bixbyUserId` as StarIntel identity, and it must not copy access tokens, Samsung profile/device/location metadata, or other ambient context into StarIntel request bodies, queries, logs, or returned models.
 
-Capsule authority is split:
+Current issue #11 decision for StarIntel Intelligence is therefore **dual-mode**, not anonymous-only and not mandatory-login-only:
 
-- Intelligence: `starintel.read`, `starintel.search` only.
-- Operations: only the additional scopes needed for target and Auto-Dig actions (`starintel.targets.write`, `starintel.autodig.read`, `starintel.autodig.control`).
+1. Guest mode: no login; the gateway/server uses the server-owned synthetic public-read context from `starintel-server#109`.
+2. Signed-in mode: optional Bixby user OAuth; the StarIntel OAuth provider maps the token to a real StarIntel human principal and normal server-side authorization determines that principal's readable/searchable datasets and tenants.
+
+An authenticated request that receives invalid/expired/revoked credentials must fail closed and trigger reauthorization rather than silently retrying as guest. A valid token with insufficient scope remains forbidden. The public path remains available for requests that are genuinely guest-compatible.
+
+The same human-user identity architecture is reused by Operations with additional scopes. Do not create a second Operations account system and do not substitute a capsule-global service credential for user identity.
+
+Concrete `authorization.bxb` provider URLs remain blocked on `starintel-server#111`. They must not be fabricated. Once #111 provides real authorize/token endpoints and the Bixby client is registered, Intelligence can bind its local endpoints to optional user authorization and Operations can bind privileged endpoints to required user authorization.
+
+Keep four identities distinct:
+
+1. Bixby/Samsung runtime/user context;
+2. optional authenticated StarIntel human principal;
+3. Bixby gateway service identity;
+4. gateway-to-StarIntel/Quasar upstream service identity.
+
+Capsule authority remains split:
+
+- Intelligence guest: public synthetic read only.
+- Intelligence signed-in: canonical read/search scopes only.
+- Operations: only the additional scopes needed for target and Auto-Dig actions (`starintel.targets.write`, `starintel.autodig.read`, `starintel.autodig.control` or canonical server equivalents).
 
 ### Configuration and secrets
 
@@ -86,6 +106,9 @@ No proprietary Samsung validation has been run from this environment. Therefore 
 
 - Samsung Automation Studio Capsule Node shortcut: not the Bixby capsule architecture required here.
 - one giant privileged capsule: violates least privilege and epic #1.
+- anonymous-only Intelligence as the final architecture: loses real StarIntel user support.
+- mandatory login for every Intelligence lookup: unnecessarily removes public guest search.
+- manual bearer-token plumbing in capsule request bodies/headers: Bixby-managed OAuth HTTP methods are the safer supported path.
 - app-launch after every document result: contrary to current punch-out guidance; attribution links are preferred.
 - browser/UI automation as runtime authority: not a StarIntel or Bixby control plane.
 
@@ -149,19 +172,21 @@ Infra epic authority: `starintel-labs/starintel-infra#34`. Gateway work remains 
 
 ## Phase-0 design consequences
 
-1. Build two actual capsules with separate OAuth scopes.
-2. Use local JavaScript endpoint adapters where needed to read Developer Center configuration/secrets and normalize the gateway boundary; the capsule never receives StarIntel service credentials.
-3. Use continuation training for selected-person and selected-run follow-up; never infer visual/screen identity.
-4. Use transactional confirmation views for target creation and Auto-Dig mutations.
-5. Use attribution links for public document navigation by default.
-6. Freeze `/v1/bixby/...` request/response fixtures before infra implementation.
-7. Treat person/document/target capsule concepts as Bixby contracts only. Backend canonical schemas remain owned by StarIntel.
-8. Capability-discover StarIntel and Quasar operations. The current StarIntel machine-readable registry is incomplete for legacy search/target, and the current Quasar core registry does not prove Auto-Dig lifecycle support.
-9. Keep Auto-Dig mutations disabled at integration time until an owning typed control-plane operation exists for each requested behavior.
-10. Public document URL generation remains a gateway/infra concern; no public Quasar origin has yet been verified from current infra inventory.
+1. Build two actual capsules with separated authority.
+2. Intelligence is dual-mode: guest public search plus optional StarIntel user OAuth for read/search; Operations reuses the same user identity with additional scopes.
+3. Use local JavaScript endpoint adapters to read Developer Center configuration, select guest vs Bixby-managed OAuth transport, normalize the gateway boundary, and avoid forwarding ambient Bixby context; the capsule never receives StarIntel service credentials.
+4. Use continuation training for selected-person and selected-run follow-up; never infer visual/screen identity.
+5. Use transactional confirmation views for target creation and Auto-Dig mutations.
+6. Use attribution links for public document navigation by default.
+7. Freeze `/v1/bixby/...` request/response fixtures before infra implementation, including guest/authenticated variants and fail-closed token behavior.
+8. Treat person/document/target capsule concepts as Bixby contracts only. Backend canonical schemas remain owned by StarIntel.
+9. Capability-discover StarIntel and Quasar operations. The current StarIntel machine-readable registry is incomplete for legacy search/target, and the current Quasar core registry does not prove Auto-Dig lifecycle support.
+10. Keep Auto-Dig mutations disabled at integration time until an owning typed control-plane operation exists for each requested behavior.
+11. Public document URL generation remains a gateway/infra concern; no public Quasar origin has yet been verified from current infra inventory.
 
 ## Open risks that must be resolved before production mutation
 
+- `starintel-server#111` must provide the real Bixby-compatible StarIntel human-user OAuth provider/client contract before `authorization.bxb` can be truthfully completed;
 - canonical person-search result schema/operation must be identified or added at its owning StarIntel boundary;
 - target actor discovery suitable for user-facing selection must be identified; raw actor/RMQ identifiers are not acceptable;
 - target idempotency under HTTP retry must be proven or fixed at the owning StarIntel boundary;

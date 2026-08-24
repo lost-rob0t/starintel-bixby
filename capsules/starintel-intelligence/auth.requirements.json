@@ -3,5 +3,13 @@
   "requiredScopes": [],
   "publicAuthority": "starintel-server#109",
   "principalMode": "server-owned-synthetic-public-read-context",
-  "forwardVivContext": false
+  "signedInMode": "optional-user",
+  "signedInAuthority": "starintel-server#111",
+  "signedInScopes": [
+    "documents:read",
+    "search:read"
+  ],
+  "forwardVivContext": false,
+  "manualTokenForwarding": false,
+  "useBixbyUserIdAsPrincipal": false
 }

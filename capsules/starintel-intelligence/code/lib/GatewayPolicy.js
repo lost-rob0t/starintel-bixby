@@ -291,28 +291,59 @@ function validatePath(path) {
   return path
 }
 
+function requestOptions() {
+  return {
+    format: 'json',
+    passAsJson: true,
+    returnHeaders: true,
+  }
+}
+
+function parseResponse(response) {
+  const status = Number(response && response.status)
+  const parsed = response && response.parsed
+  if (status >= 200 && status < 300) return parsed
+
+  const code = safeErrorCode(status, parsed)
+  throw new GatewayError(code, safeMessage(code))
+}
+
+function authorizationError() {
+  const error = new Error('StarIntel authorization must be refreshed.')
+  error.$type = 'authorization-error'
+  error.$message = 'Please reconnect your StarIntel account.'
+  return error
+}
+
 export function postJson(httpClient, origin, path, body) {
   const base = validateGatewayOrigin(origin)
   const safePath = validatePath(path)
   let response
   try {
-    response = httpClient.postUrl(`${base}${safePath}`, body, {
-      format: 'json',
-      passAsJson: true,
-      returnHeaders: true,
-    })
+    response = httpClient.postUrl(`${base}${safePath}`, body, requestOptions())
   } catch (_error) {
     throw new GatewayError('UPSTREAM_UNAVAILABLE', safeMessage('UPSTREAM_UNAVAILABLE'))
   }
+  return parseResponse(response)
+}
 
-  const status = Number(response && response.status)
-  const parsed = response && response.parsed
-  if (status >= 200 && status < 300) {
-    return parsed
+export function postJsonOptionalUser(httpClient, origin, path, body, vivContext) {
+  const base = validateGatewayOrigin(origin)
+  const safePath = validatePath(path)
+  const signedIn = Boolean(vivContext && vivContext.accessToken)
+  let response
+  try {
+    const method = signedIn ? 'oauthPostUrl' : 'postUrl'
+    response = httpClient[method](`${base}${safePath}`, body, requestOptions())
+  } catch (error) {
+    if (signedIn && error && error.$type === 'authorization-error') throw error
+    throw new GatewayError('UPSTREAM_UNAVAILABLE', safeMessage('UPSTREAM_UNAVAILABLE'))
   }
 
-  const code = safeErrorCode(status, parsed)
-  throw new GatewayError(code, safeMessage(code))
+  if (signedIn && Number(response && response.status) === 401) {
+    throw authorizationError()
+  }
+  return parseResponse(response)
 }
 
 export default {
@@ -323,5 +354,6 @@ export default {
   normalizeDocumentSearchResult,
   normalizePersonSearchResult,
   postJson,
+  postJsonOptionalUser,
   validateGatewayOrigin,
 }
