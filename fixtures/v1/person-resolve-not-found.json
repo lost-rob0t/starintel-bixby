@@ -1,0 +1,9 @@
+{
+  "api_version": "v1",
+  "correlation_id": "bixby-person-003",
+  "status": "error",
+  "error": {
+    "code": "PERSON_NOT_FOUND",
+    "message": "No matching person was found."
+  }
+}
