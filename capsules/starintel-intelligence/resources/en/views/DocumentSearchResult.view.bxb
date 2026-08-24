@@ -1,0 +1,40 @@
+result-view {
+  match {
+    DocumentSearchResult (documentResult)
+  }
+  message {
+    if (size(documentResult.documents) == 0) {
+      template ("I couldn't find matching StarIntel documents.")
+    } else {
+      template ("Here are the matching StarIntel documents.")
+    }
+  }
+  render {
+    if (size(documentResult.documents) == 0) {
+      nothing
+    } else {
+      list-of (documentResult.documents) {
+        where-each (document) {
+          compound-card {
+            content {
+              paragraph {
+                value ("#{value(document.title)}")
+              }
+              paragraph {
+                value ("#{value(document.summary)}")
+              }
+              attribution-link {
+                label {
+                  template ("Open document")
+                }
+                url {
+                  template ("#{value(document.url)}")
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,3 @@
+text (PersonSummary) {
+  description (A backend-provided factual summary. Bixby must not fabricate it.)
+}

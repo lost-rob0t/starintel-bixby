@@ -1,0 +1,28 @@
+structure (DocumentHit) {
+  description (A normalized StarIntel document search result.)
+  property (id) {
+    type (DocumentId)
+    min (Required)
+    max (One)
+  }
+  property (title) {
+    type (DocumentTitle)
+    min (Required)
+    max (One)
+  }
+  property (summary) {
+    type (DocumentSummary)
+    min (Optional)
+    max (One)
+  }
+  property (dtype) {
+    type (DocumentType)
+    min (Optional)
+    max (One)
+  }
+  property (url) {
+    type (DocumentUrl)
+    min (Required)
+    max (One)
+  }
+}

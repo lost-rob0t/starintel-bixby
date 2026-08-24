@@ -1,0 +1,3 @@
+text (DocumentTitle) {
+  description (A display title supplied by the backend.)
+}

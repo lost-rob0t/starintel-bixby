@@ -1,0 +1,3 @@
+text (DocumentQuery) {
+  description (A StarIntel document search query.)
+}

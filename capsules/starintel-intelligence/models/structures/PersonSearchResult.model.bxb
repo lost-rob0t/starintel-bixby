@@ -1,0 +1,18 @@
+structure (PersonSearchResult) {
+  description (Backend resolution result. A profile is present only when the person is unambiguous.)
+  property (query) {
+    type (PersonQuery)
+    min (Required)
+    max (One)
+  }
+  property (matches) {
+    type (PersonMatch)
+    min (Optional)
+    max (Many)
+  }
+  property (profile) {
+    type (PersonProfile)
+    min (Optional)
+    max (One)
+  }
+}

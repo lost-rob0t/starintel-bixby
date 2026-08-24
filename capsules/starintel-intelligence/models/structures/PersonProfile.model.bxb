@@ -1,0 +1,28 @@
+structure (PersonProfile) {
+  description (The selected backend-resolved person profile.)
+  property (id) {
+    type (PersonId)
+    min (Required)
+    max (One)
+  }
+  property (name) {
+    type (PersonName)
+    min (Required)
+    max (One)
+  }
+  property (aliases) {
+    type (PersonAlias)
+    min (Optional)
+    max (Many)
+  }
+  property (knownIdentifiers) {
+    type (PersonIdentifier)
+    min (Optional)
+    max (Many)
+  }
+  property (summary) {
+    type (PersonSummary)
+    min (Optional)
+    max (One)
+  }
+}
