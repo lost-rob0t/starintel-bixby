@@ -1,0 +1,23 @@
+endpoints {
+  action-endpoints {
+    action-endpoint (ResolvePerson) {
+      accepted-inputs (query)
+      remote-endpoint ("{gateway.url}/v1/bixby/person/resolve") {
+        method (POST)
+      }
+      authorization {
+        user
+      }
+    }
+
+    action-endpoint (SearchDocuments) {
+      accepted-inputs (query, dtype, limit, personId)
+      remote-endpoint ("{gateway.url}/v1/bixby/documents/search") {
+        method (POST)
+      }
+      authorization {
+        user
+      }
+    }
+  }
+}
