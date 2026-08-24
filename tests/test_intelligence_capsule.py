@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 
@@ -52,6 +53,15 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
         self.assertIn("normalizePersonSearchResult", resolve)
         self.assertIn("normalizeDocumentSearchResult", documents)
         self.assertIn("request.limit", documents)
+
+    def test_auth_requirements_are_authorization_code_and_read_search_only(self):
+        requirements = json.loads(self.read("auth.requirements.json"))
+        self.assertEqual("oauth2-authorization-code", requirements["authorizationType"])
+        self.assertEqual(["starintel.read", "starintel.search"], requirements["requiredScopes"])
+        self.assertEqual("starintel-server#111", requirements["providerBlocker"])
+        serialized = json.dumps(requirements).lower()
+        for forbidden in ("targets.write", "autodig", "clientsecret", "client_secret", "tokenvalue"):
+            self.assertNotIn(forbidden, serialized)
 
     def test_person_contract_models_exist(self):
         required = {
