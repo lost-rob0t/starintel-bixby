@@ -1,0 +1,16 @@
+{
+  "editor": "Bixby Training Editor 2.1",
+  "generated_training_source_must_not_be_hand_edited": true,
+  "entries": [
+    {"utterance": "Create a BBPD target for example.com", "goal": "CommitTarget", "planner_path": ["PrepareTarget", "CommitTarget"], "slots": {"subject": "example.com", "actor": "BBPD"}},
+    {"utterance": "Create a domain target for example.com", "goal": "CommitTarget", "planner_path": ["PrepareTarget", "CommitTarget"], "slots": {"subject": "example.com", "targetType": "domain"}},
+    {"utterance": "Start Auto-Dig on this target", "goal": "CommitAutoDigStart", "planner_path": ["PrepareAutoDigStart", "CommitAutoDigStart"], "continuation": true},
+    {"utterance": "Start Auto-Dig to research example.com", "goal": "CommitAutoDigStart", "planner_path": ["PrepareAutoDigStart", "CommitAutoDigStart"], "slots": {"goal": "Research example.com"}},
+    {"utterance": "What is Auto-Dig doing", "goal": "GetAutoDigRun", "continuation": true},
+    {"utterance": "List my Auto-Dig runs", "goal": "ListAutoDigRuns"},
+    {"utterance": "Pause this Auto-Dig run", "goal": "PauseAutoDigRun", "continuation": true},
+    {"utterance": "Resume this Auto-Dig run", "goal": "ResumeAutoDigRun", "continuation": true},
+    {"utterance": "Stop this Auto-Dig run", "goal": "StopAutoDigRun", "continuation": true},
+    {"utterance": "Is Auto-Dig available", "goal": "GetAutoDigStatus"}
+  ]
+}
