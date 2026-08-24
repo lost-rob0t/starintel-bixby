@@ -1,0 +1,5 @@
+action (GetAutoDigStatus) {
+  description (Check whether the authoritative Auto-Dig control plane is available.)
+  type (Search)
+  output (AutoDigStatus)
+}
