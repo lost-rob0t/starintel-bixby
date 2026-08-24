@@ -73,14 +73,14 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
 
     def test_training_seed_covers_lookup_and_contextual_followups(self):
         training = self.read("training/intelligence.aligned.txt")
-        for phrase in (
-            "Who is John Smith",
+        for aligned_phrase in (
+            "Who is (John Smith)[v:PersonQuery]",
             "Who is this person",
             "Tell me more about this person",
             "Show me documents about this person",
-            "Find documents about John Smith",
+            "Find documents about (John Smith)[v:PersonQuery]",
         ):
-            self.assertIn(phrase, training)
+            self.assertIn(aligned_phrase, training)
         self.assertIn(":continue", training)
 
     def test_does_not_fabricate_studio_generated_training_plans(self):
