@@ -1,0 +1,9 @@
+{
+  "authorizationType": "oauth2-authorization-code",
+  "requiredScopes": [
+    "starintel.read",
+    "starintel.search"
+  ],
+  "providerBlocker": "starintel-server#111",
+  "developerCenterSecretKey": "starintel_intelligence_oauth"
+}
