@@ -1,0 +1,3 @@
+text (PersonName) {
+  description ("A canonical or candidate person name")
+}
