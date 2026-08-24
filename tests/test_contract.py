@@ -10,9 +10,10 @@ FIXTURES = json.loads((ROOT / "fixtures" / "v1" / "fixtures.json").read_text())
 
 
 class ContractTests(unittest.TestCase):
-    def test_contract_is_https_json(self):
+    def test_contract_is_https_json_camel_case(self):
         self.assertEqual(CONTRACT["transport"]["scheme"], "https")
         self.assertEqual(CONTRACT["transport"]["content_type"], "application/json")
+        self.assertEqual(CONTRACT["wire_case"], "camelCase")
 
     def test_all_routes_are_versioned_and_post(self):
         for endpoint in CONTRACT["endpoints"]:
@@ -45,8 +46,12 @@ class ContractTests(unittest.TestCase):
         by_id = {endpoint["id"]: endpoint for endpoint in CONTRACT["endpoints"]}
         self.assertEqual(by_id["targets.commit"]["idempotency"], "required")
         self.assertEqual(by_id["autodig.start.commit"]["idempotency"], "required")
-        self.assertIn("idempotency_key", FIXTURES["target"]["commit"]["request"])
-        self.assertIn("idempotency_key", FIXTURES["autodig"]["start_commit"]["request"])
+        target_draft = FIXTURES["target"]["commit"]["request"]["draft"]
+        autodig_draft = FIXTURES["autodig"]["start_commit"]["request"]["draft"]
+        self.assertIn("draftId", target_draft)
+        self.assertIn("idempotencyKey", target_draft)
+        self.assertIn("draftId", autodig_draft)
+        self.assertIn("idempotencyKey", autodig_draft)
 
     def test_document_result_limit_is_bounded(self):
         limits = CONTRACT["limits"]
@@ -65,7 +70,7 @@ class ContractTests(unittest.TestCase):
 
     def test_autodig_start_is_nonblocking_receipt(self):
         response = FIXTURES["autodig"]["start_commit"]["response"]
-        self.assertTrue(response["run_id"])
+        self.assertTrue(response["runId"])
         self.assertIn(response["status"], {"queued", "running"})
         self.assertNotIn("result", response)
         self.assertNotEqual(response["status"], "completed")
@@ -82,6 +87,20 @@ class ContractTests(unittest.TestCase):
         fixture_errors.add(FIXTURES["person"]["not_found"]["error"]["error"])
         fixture_errors.add(FIXTURES["documents"]["empty"]["error"]["error"])
         self.assertTrue(fixture_errors <= declared)
+
+    def test_public_wire_fields_do_not_use_snake_case(self):
+        def check(value):
+            if isinstance(value, dict):
+                for key, child in value.items():
+                    if key not in {"start_prepare", "start_commit", "not_found", "rate_limited", "actor_unsupported", "target_type_unsupported", "autodig_unavailable", "autodig_run_missing"}:
+                        self.assertNotIn("_", key, key)
+                    check(child)
+            elif isinstance(value, list):
+                for child in value:
+                    check(child)
+
+        for section in (FIXTURES["person"], FIXTURES["documents"], FIXTURES["target"]["prepare"], FIXTURES["target"]["commit"], FIXTURES["autodig"]["status"], FIXTURES["autodig"]["run"], FIXTURES["autodig"]["start_prepare"], FIXTURES["autodig"]["start_commit"], FIXTURES["autodig"]["pause"], FIXTURES["autodig"]["resume"], FIXTURES["autodig"]["stop"]):
+            check(section)
 
     def test_no_private_or_internal_transport_leakage(self):
         payload = json.dumps({"contract": CONTRACT, "fixtures": FIXTURES}).lower()
