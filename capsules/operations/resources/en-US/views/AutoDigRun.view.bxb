@@ -1,0 +1,26 @@
+result-view {
+  match {
+    AutoDigRun (run) {
+      min (Required) max (One)
+    }
+  }
+  message ("Auto-Dig run #{value(run.runId)} is #{value(run.status)}.")
+  render {
+    layout {
+      section {
+        title ("Auto-Dig #{value(run.status)}")
+        content {
+          if (exists(run.summary)) {
+            paragraph ("#{value(run.summary)}")
+          }
+          single-line {
+            text {
+              value ("Run: #{value(run.runId)}")
+              style (Detail_S)
+            }
+          }
+        }
+      }
+    }
+  }
+}
