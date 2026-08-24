@@ -1,0 +1,3 @@
+text (DraftId) {
+  description (An opaque gateway-issued draft identifier.)
+}
