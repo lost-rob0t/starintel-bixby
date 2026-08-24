@@ -1,0 +1,23 @@
+structure (PersonSearchResult) {
+  description (The normalized result of conservative StarIntel person resolution.)
+  property (status) {
+    type (PersonResolutionStatus)
+    min (Required) max (One)
+  }
+  property (query) {
+    type (PersonQuery)
+    min (Required) max (One)
+  }
+  property (selected) {
+    type (PersonMatch)
+    min (Optional) max (One)
+  }
+  property (candidates) {
+    type (PersonMatch)
+    min (Optional) max (Many)
+  }
+  property (correlationId) {
+    type (CorrelationId)
+    min (Required) max (One)
+  }
+}
