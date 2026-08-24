@@ -1,0 +1,23 @@
+result-view {
+  match {
+    AutoDigRunReceipt (receipt) {
+      min (Required) max (One)
+    }
+  }
+  message ("Auto-Dig run #{value(receipt.runId)} is #{value(receipt.status)}.")
+  render {
+    layout {
+      section {
+        title ("Auto-Dig #{value(receipt.status)}")
+        content {
+          single-line {
+            text {
+              value ("Run: #{value(receipt.runId)}")
+              style (Detail_L)
+            }
+          }
+        }
+      }
+    }
+  }
+}
