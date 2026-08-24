@@ -1,9 +1,7 @@
 {
-  "authorizationType": "oauth2-authorization-code",
-  "requiredScopes": [
-    "starintel.read",
-    "starintel.search"
-  ],
-  "providerBlocker": "starintel-server#111",
-  "developerCenterSecretKey": "starintel_intelligence_oauth"
+  "authorizationType": "none",
+  "requiredScopes": [],
+  "publicAuthority": "starintel-server#109",
+  "principalMode": "server-owned-synthetic-public-read-context",
+  "forwardVivContext": false
 }
