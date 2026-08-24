@@ -1,0 +1,11 @@
+action (ListAutoDigRuns) {
+  description (List a bounded set of authoritative Auto-Dig runs.)
+  type (Search)
+  collect {
+    input (limit) {
+      type (RunLimit)
+      min (Optional) max (One)
+    }
+  }
+  output (AutoDigRunList)
+}
