@@ -35,16 +35,33 @@ class DualModeAuthWiringTests(unittest.TestCase):
         self.assertEqual("none", requirements["authorizationType"])
         self.assertEqual("starintel-server#109", requirements["publicAuthority"])
         self.assertEqual("optional-user", requirements["signedInMode"])
-        self.assertEqual("starintel-server#111", requirements["signedInAuthority"])
+        self.assertEqual("starintel-server-core-oauth", requirements["signedInAuthority"])
+        self.assertEqual(
+            "4f2f70126bc59e18681844019460a33709e1eba6",
+            requirements["providerMerge"],
+        )
+        self.assertTrue(requirements["providerImplemented"])
         self.assertEqual(["documents:read", "search:read"], requirements["signedInScopes"])
         self.assertFalse(requirements["forwardVivContext"])
         self.assertFalse(requirements["manualTokenForwarding"])
         self.assertFalse(requirements["useBixbyUserIdAsPrincipal"])
 
-    def test_provider_declaration_is_not_fabricated_before_server_111(self):
+    def test_provider_declaration_waits_for_real_bixby_client_registration(self):
+        requirements = json.loads(self.read("auth.requirements.json"))
+        self.assertEqual(
+            [
+                "deployedPublicOauthOrigin",
+                "registeredCapsuleId",
+                "registeredRedirectUri",
+                "oauthClientId",
+                "developerCenterClientSecretKey",
+            ],
+            requirements["registrationRequired"],
+        )
+        self.assertFalse(requirements["registrationComplete"])
         self.assertFalse(
             (CAPSULE / "authorization.bxb").exists(),
-            "authorization.bxb must contain real StarIntel provider endpoints from server #111, not placeholders",
+            "authorization.bxb must not contain invented provider/client registration values",
         )
 
 

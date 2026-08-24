@@ -1,6 +1,6 @@
 # StarIntel Bixby research
 
-Status: Phase 0 evidence for issue #4, with issue #11 dual-mode authentication re-check. This document records current official Samsung/Bixby behavior and current StarIntel/Quasar/infra authority boundaries. It is not evidence of Simulator, private-submission, Developer Center, or on-device execution.
+Status: Phase 0 evidence for issue #4, with issue #11 dual-mode authentication/provider re-check. This document records current official Samsung/Bixby behavior and current StarIntel/Quasar/infra authority boundaries. It is not evidence of Simulator, private-submission, Developer Center, or on-device execution.
 
 ## Samsung/Bixby — current official findings
 
@@ -41,11 +41,11 @@ Bixby models remain concept/action based. Training examples bind natural utteran
 
 The `client-secret-key` is a lookup key for a secret entered in Developer Center Configuration & Secrets. The secret value must not be committed to this repository.
 
-Current endpoint authorization is opt-in. An action endpoint with no authorization annotation does not use OAuth. Samsung also documents **optional user OAuth** for endpoints: the endpoint can use `authorization: user: optional`, which does not automatically force login. Local JavaScript can detect whether `$vivContext.accessToken` exists, use ordinary `http` methods for anonymous execution, use `http.oauth*` methods for signed-in execution, and throw an `authorization-error` to trigger login/reauthorization when an authenticated credential is invalid or revoked.
+Current endpoint authorization is opt-in. An action endpoint with no authorization annotation does not use OAuth. Samsung also documents optional user OAuth for endpoints: an endpoint may use optional user authorization so public-compatible actions do not automatically force login. Local JavaScript can detect whether `$vivContext.accessToken` exists, use ordinary `http` methods for anonymous execution, use `http.oauth*` methods for signed-in execution, and throw an `authorization-error` to trigger login/reauthorization when an authenticated credential is invalid or revoked.
 
 Important privacy consequence: `$vivContext` contains Samsung/Bixby runtime context and must not be forwarded wholesale. For StarIntel, local JavaScript should inspect only the presence of the managed access token needed to select authenticated transport. It must not treat `$vivContext.bixbyUserId` as StarIntel identity, and it must not copy access tokens, Samsung profile/device/location metadata, or other ambient context into StarIntel request bodies, queries, logs, or returned models.
 
-Current issue #11 decision for StarIntel Intelligence is therefore **dual-mode**, not anonymous-only and not mandatory-login-only:
+Current issue #11 decision for StarIntel Intelligence is therefore dual-mode, not anonymous-only and not mandatory-login-only:
 
 1. Guest mode: no login; the gateway/server uses the server-owned synthetic public-read context from `starintel-server#109`.
 2. Signed-in mode: optional Bixby user OAuth; the StarIntel OAuth provider maps the token to a real StarIntel human principal and normal server-side authorization determines that principal's readable/searchable datasets and tenants.
@@ -54,7 +54,9 @@ An authenticated request that receives invalid/expired/revoked credentials must 
 
 The same human-user identity architecture is reused by Operations with additional scopes. Do not create a second Operations account system and do not substitute a capsule-global service credential for user identity.
 
-Concrete `authorization.bxb` provider URLs remain blocked on `starintel-server#111`. They must not be fabricated. Once #111 provides real authorize/token endpoints and the Bixby client is registered, Intelligence can bind its local endpoints to optional user authorization and Operations can bind privileged endpoints to required user authorization.
+The canonical StarIntel OAuth provider is now implemented and merged in `lost-rob0t/starintel-server` at `4f2f70126bc59e18681844019460a33709e1eba6`. Core StarIntel owns `/oauth/authorize`, `/oauth/token`, existing human principals, exact redirect/client/scope validation, S256 PKCE, one-time authorization codes, short-lived bearer tokens and downstream request-security-context authorization. The optional `starintel-bixby` Common Lisp add-on projects Samsung-specific configuration and explicitly creates a normal core OAuth client; it does not fork the auth system.
+
+What remains before a real Intelligence `authorization.bxb` can be committed is registration/deployment data, not provider architecture: a deployed public HTTPS OAuth origin running that provider, the real registered Bixby capsule ID and exact callback URI, the public OAuth client ID returned by StarIntel client registration, and the Developer Center `client-secret-key` name containing the one-time client secret. These values must not be fabricated. Until they exist, `auth.requirements.json.registrationComplete` stays false and endpoint authorization annotations remain absent.
 
 Keep four identities distinct:
 
@@ -73,7 +75,7 @@ Capsule authority remains split:
 
 Developer Center Configuration & Secrets remains current. `config.get()` reads configuration and `secret.get()`/secret lookup reads secrets in local JavaScript. Dynamic configuration changes require a new Simulator conversation/reset/recompile before they are visible.
 
-Important constraint: dynamic Developer Center endpoint URI values are not directly available inside `endpoints.bxb`; use local JavaScript when the gateway origin must be supplied by Developer Center configuration rather than hard-coded in the model file.
+Important constraint: dynamic Developer Center endpoint URI values are not directly available inside `endpoints.bxb`; use local JavaScript when the gateway origin must be supplied by Developer Center configuration rather than hard-coded in the model file. Samsung's current OAuth declaration still requires a public `client-id` and a `client-secret-key` reference in capsule source; the secret value itself remains in Developer Center.
 
 ### Views, links, and confirmation
 
@@ -114,20 +116,22 @@ No proprietary Samsung validation has been run from this environment. Therefore 
 
 ## StarIntel server — current authority
 
-Evidence source: `lost-rob0t/starintel-server` at commit `8f6e50701081f0335c7552082dba5ff392b859e5`.
+Evidence source: `lost-rob0t/starintel-server` through merge `4f2f70126bc59e18681844019460a33709e1eba6`, with earlier Phase-0 route/schema evidence retained below where still applicable.
 
 The server exposes machine-readable discovery at:
 
 - `GET /openapi.json` — OpenAPI 3.1.2;
 - `GET /client-manifest.json` — normalized StarIntel client manifest.
 
-The initial contracted operation registry currently covers health/server metadata, auth/user/credential lifecycle, and contract discovery. Legacy document/search/target routes remain implemented but are not yet all migrated into the generated named-operation registry.
+The contracted operation registry covers health/server metadata, auth/user/credential lifecycle, contract discovery and the growing versioned public surface. Legacy document/search/target routes remain implemented but are not yet all migrated into the generated named-operation registry.
 
 Important boundary: the Bixby gateway must discover and prefer named generated/client operations when available. Any unavoidable legacy StarIntel routes must be isolated behind one adapter rather than copied into capsule logic or scattered through the gateway.
 
 Current HTTP behavior includes:
 
-- bearer API-key auth by default;
+- legacy API-key and OAuth bearer authentication through the shared bearer/request-security-context boundary;
+- public `/oauth/authorize` and `/oauth/token` protocol endpoints with exact client/redirect/scope validation and S256 PKCE;
+- public synthetic-context `/api/v1/search` and aggregate stats from #109 without weakening mutation authorization;
 - allow-listed CORS;
 - `X-Correlation-ID` support;
 - bounded `X-Request-Timeout-Ms` support;
@@ -152,7 +156,7 @@ Quasar has a real typed/versioned control envelope: `quasar.control.v1`. The env
 
 The current core control-plane command registry found during Phase 0 includes system capability discovery plus workspace/document/graph operations. It is actor-backed and owns canonical workspace state through a single-writer command actor.
 
-Crucially, Phase 0 did **not** find canonical Auto-Dig run lifecycle commands (start/pause/resume/stop/status) in that core registry. `auto-dig-quasar` currently exposes UI/agent-supervisor code, which is not sufficient authority for Bixby runtime control.
+Crucially, Phase 0 did not find canonical Auto-Dig run lifecycle commands (start/pause/resume/stop/status) in that core registry. `auto-dig-quasar` currently exposes UI/agent-supervisor code, which is not sufficient authority for Bixby runtime control.
 
 Design consequence: the Bixby contract may model desired Auto-Dig operations, but the gateway must capability-discover them. If the required durable run lifecycle is absent, the smallest correct extension belongs in the owning Quasar/Auto-Dig control-plane repository before gateway implementation. No UI automation, direct Auto-Dig DB edits, RabbitMQ shortcuts, or shell compatibility layer.
 
@@ -164,7 +168,9 @@ Canonical service exposure is declared in `inventory/services.nix`. Public servi
 
 The private `.star.intel` namespace must never be published publicly or used for public ACME. The existing public edge model uses `starintel.actor` names through the declared edge.
 
-At Phase 0, `inventory/services.nix` contains only the public `ingest` service. There is no declared public Quasar service and therefore **no currently verified canonical public Quasar document origin in infra**. The example in docs is explicitly commented/private and is not deployed authority.
+Current inventory declares the public `ingest.starintel.actor` service through `ord-edge`, but that declaration alone is not proof that the newly merged OAuth provider build is deployed there. The adopted `starintel-ingest` profile deliberately preserves existing application service definitions until live unit/Nix state has been captured, so provider deployment must be verified against the live service before the hostname is committed as OAuth authority.
+
+There is still no declared public Quasar service and therefore no currently verified canonical public Quasar document origin in infra. The example in docs is explicitly commented/private and is not deployed authority.
 
 Design consequence: document results can carry `DocumentUrl` in the frozen Bixby contract, but the gateway must build it from one configured public origin only after infra declares/validates the real public Quasar document route. Never hard-code `quasar.starintel.actor` from an example.
 
@@ -186,10 +192,10 @@ Infra epic authority: `starintel-labs/starintel-infra#34`. Gateway work remains 
 
 ## Open risks that must be resolved before production mutation
 
-- `starintel-server#111` must provide the real Bixby-compatible StarIntel human-user OAuth provider/client contract before `authorization.bxb` can be truthfully completed;
+- issue #11 still needs the real Bixby registration tuple: verified deployed OAuth origin, registered capsule ID/callback, StarIntel OAuth client ID and Developer Center secret-key name before `authorization.bxb` and optional endpoint authorization can be committed;
 - canonical person-search result schema/operation must be identified or added at its owning StarIntel boundary;
 - target actor discovery suitable for user-facing selection must be identified; raw actor/RMQ identifiers are not acceptable;
 - target idempotency under HTTP retry must be proven or fixed at the owning StarIntel boundary;
 - durable Auto-Dig run lifecycle control commands must be identified or implemented in the owning control plane;
 - public Quasar document origin and stable route must be declared/verified in infra before any `DocumentUrl` is emitted;
-- Developer Center namespace, OAuth client registration, secret keys, private submission, Simulator and Galaxy testing remain manual operator gates.
+- Developer Center namespace, OAuth client registration/secret storage, private submission, Simulator and Galaxy testing remain manual operator gates.
