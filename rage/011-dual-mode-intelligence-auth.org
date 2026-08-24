@@ -42,5 +42,31 @@
 - Implement the minimum shared policy/helper and action wiring.
 - Run exact-head CI before any merge decision.
 
+** TDD / implementation evidence
+*** Dual-mode HTTP transport
+- Tests-first commit :: =419d43a56e92ea54239abd511f8b6b47eea95a46=.
+- RED :: CI #140 failed only in the new JavaScript auth-policy slice while all Python repository tests remained green.
+- Required behavior :: guest uses ordinary =postUrl=; signed-in uses Bixby-managed =oauthPostUrl=; token/context data are not copied into request data; authenticated 401 becomes Bixby =authorization-error=; authenticated 403 remains =FORBIDDEN=.
+- Production commit :: =03df0fbdecd1570d2bae5a9573ec2d0009c1b447= adds =postJsonOptionalUser= and preserves the existing guest helper.
+
+*** Action/endpoint wiring
+- Tests-first commit :: =9c0047b40b1302bc7791c1589d868569f3183867=.
+- RED :: CI #142 failed in the new Python wiring tests before JavaScript execution because the inherited actions/endpoints did not yet accept/use =$vivContext=.
+- Production commits :: =76a3c4533f8d5373eb5d50a0039af0406c618d9b=, =ae6413311538b8d51acc54525e5201802870c479=, =64ee8d6ef83fa086eba3f188ccb01f7de7c8c8e7=.
+- GREEN :: CI #145 passed at exact head =64ee8d6ef83fa086eba3f188ccb01f7de7c8c8e7=.
+- Privacy property :: action source never names =accessToken=, =bixbyUserId=, =Authorization=, or =Bearer=; only the shared helper sees token presence to select Bixby's managed OAuth transport.
+
+*** Authority manifest
+- Tests-first commit :: =25879076c79fc50e6878f2f9e2b9dd65db0c4c08=.
+- RED :: CI #146 failed in the new manifest test because the inherited #6 manifest did not yet declare the optional signed-in boundary.
+- Production commit :: =a39418944844fa778c20afd59219e7da4894c917= preserves guest =authorizationType: none= / #109 synthetic-public authority while adding =signedInMode: optional-user=, =signedInAuthority: starintel-server#111=, canonical read/search scope placeholders, and explicit no-context/no-manual-token/no-Bixby-ID invariants.
+
+*** Documentation reconciliation
+- =docs/architecture.md= now defines guest Intelligence, signed-in Intelligence, shared StarIntel human identity for Operations, fail-closed auth downgrade behavior, cache isolation, and the #111 real-provider gate.
+- =docs/research.md= now records current official Samsung optional OAuth behavior, =http.oauth*= transport, =authorization-error= reauth behavior, and the privacy consequence of not forwarding raw =$vivContext=.
+- Concrete =authorization.bxb= remains intentionally absent until #111 supplies real StarIntel authorize/token endpoints and a registered Bixby client. No fake provider URL or secret reference is introduced.
+
 ** Outcome
-- In progress.
+- Capsule-side dual-mode transport and authority policy implemented.
+- Issue #11 remains open because live account linking/provider declaration is genuinely blocked on =starintel-server#111=.
+- Final exact-head CI is required after this append-only evidence commit before merging the preparatory slice.
