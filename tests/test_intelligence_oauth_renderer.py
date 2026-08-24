@@ -2,6 +2,7 @@ import importlib.util
 import pathlib
 import tempfile
 import unittest
+from unittest import mock
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -175,6 +176,47 @@ class IntelligenceOauthRendererTests(unittest.TestCase):
             self.assertEqual(2, endpoint_text.count("authorization: user: optional"))
             combined = "\n".join(path.read_text(encoding="utf-8") for path in root.rglob("*.bxb"))
             self.assertNotIn("client-secret (", combined.lower())
+
+    def test_write_finalizer_rolls_back_every_file_if_commit_fails_mid_transaction(self):
+        tool = load_tool()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            endpoints_path = root / "resources" / "base" / "endpoints.bxb"
+            endpoints_path.parent.mkdir(parents=True)
+            capsule_path = root / "capsule.bxb"
+            capsule_before = "capsule {\n  id (playground.starIntelIntelligence)\n}\n"
+            endpoints_before = (
+                "endpoints {\n  action-endpoints {\n"
+                "    action-endpoint (ResolvePerson) { local-endpoint (ResolvePerson.js) }\n"
+                "    action-endpoint (SearchDocuments) { local-endpoint (SearchDocuments.js) }\n"
+                "  }\n}\n"
+            )
+            capsule_path.write_text(capsule_before, encoding="utf-8")
+            endpoints_path.write_text(endpoints_before, encoding="utf-8")
+
+            real_replace = tool._replace_text
+            calls = 0
+
+            def fail_second_write(path, content):
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    raise OSError("synthetic write failure")
+                return real_replace(path, content)
+
+            with mock.patch.object(tool, "_replace_text", side_effect=fail_second_write):
+                with self.assertRaises(OSError):
+                    tool.finalize_capsule_tree(
+                        root,
+                        capsule_id="starintel-labs.starIntelIntelligence",
+                        oauth_origin="https://auth.starintel.example",
+                        client_id="client-123",
+                        client_secret_key="starintel_intelligence_oauth",
+                    )
+
+            self.assertEqual(capsule_before, capsule_path.read_text(encoding="utf-8"))
+            self.assertEqual(endpoints_before, endpoints_path.read_text(encoding="utf-8"))
+            self.assertFalse((root / "authorization.bxb").exists())
 
 
 if __name__ == "__main__":
