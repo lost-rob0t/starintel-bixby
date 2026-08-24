@@ -1,0 +1,54 @@
+endpoints {
+  action-endpoints {
+    action-endpoint (PrepareTarget) {
+      accepted-inputs (subject, targetType, actor)
+      remote-endpoint ("{gateway.url}/v1/bixby/targets/prepare") { method (POST) }
+      authorization { user }
+    }
+    action-endpoint (CommitTarget) {
+      accepted-inputs (draftId, idempotencyKey)
+      remote-endpoint ("{gateway.url}/v1/bixby/targets/commit") { method (POST) }
+      authorization { user }
+    }
+    action-endpoint (GetAutoDigStatus) {
+      accepted-inputs ()
+      remote-endpoint ("{gateway.url}/v1/bixby/autodig/status") { method (POST) }
+      authorization { user }
+    }
+    action-endpoint (GetAutoDigRun) {
+      accepted-inputs (runId)
+      remote-endpoint ("{gateway.url}/v1/bixby/autodig/run") { method (POST) }
+      authorization { user }
+    }
+    action-endpoint (ListAutoDigRuns) {
+      accepted-inputs (limit)
+      remote-endpoint ("{gateway.url}/v1/bixby/autodig/runs") { method (POST) }
+      authorization { user }
+    }
+    action-endpoint (PrepareAutoDigStart) {
+      accepted-inputs (goal, targetId)
+      remote-endpoint ("{gateway.url}/v1/bixby/autodig/start/prepare") { method (POST) }
+      authorization { user }
+    }
+    action-endpoint (CommitAutoDigStart) {
+      accepted-inputs (draftId, idempotencyKey)
+      remote-endpoint ("{gateway.url}/v1/bixby/autodig/start/commit") { method (POST) }
+      authorization { user }
+    }
+    action-endpoint (PauseAutoDigRun) {
+      accepted-inputs (runId)
+      remote-endpoint ("{gateway.url}/v1/bixby/autodig/pause") { method (POST) }
+      authorization { user }
+    }
+    action-endpoint (ResumeAutoDigRun) {
+      accepted-inputs (runId)
+      remote-endpoint ("{gateway.url}/v1/bixby/autodig/resume") { method (POST) }
+      authorization { user }
+    }
+    action-endpoint (StopAutoDigRun) {
+      accepted-inputs (runId)
+      remote-endpoint ("{gateway.url}/v1/bixby/autodig/stop") { method (POST) }
+      authorization { user }
+    }
+  }
+}
