@@ -1,5 +1,3 @@
-enum (PersonResolutionStatus) {
-  symbol (Matched)
-  symbol (Ambiguous)
-  symbol (NotFound)
+text (PersonResolutionStatus) {
+  description (A normalized person-resolution state: matched, ambiguous, or not_found.)
 }
