@@ -1,0 +1,3 @@
+text (OperationSummary) {
+  description (A short safe summary of a prepared or completed operation.)
+}
