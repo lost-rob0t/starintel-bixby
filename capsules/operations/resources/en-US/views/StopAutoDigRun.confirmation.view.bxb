@@ -1,0 +1,14 @@
+confirmation-view {
+  match {
+    OperationConfirmation {
+      confirming {
+        StopAutoDigRun (action)
+      }
+    }
+  }
+  message ("Stop this Auto-Dig run?")
+  mode (NegativeEmphasis)
+  render {
+    nothing
+  }
+}
