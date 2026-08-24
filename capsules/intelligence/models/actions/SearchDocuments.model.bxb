@@ -1,0 +1,23 @@
+action (SearchDocuments) {
+  description (Search StarIntel documents and return bounded public results.)
+  type (Search)
+  collect {
+    input (query) {
+      type (DocumentQuery)
+      min (Required) max (One)
+    }
+    input (dtype) {
+      type (DocumentType)
+      min (Optional) max (One)
+    }
+    input (limit) {
+      type (ResultLimit)
+      min (Optional) max (One)
+    }
+    input (personId) {
+      type (PersonId)
+      min (Optional) max (One)
+    }
+  }
+  output (DocumentSearchResult)
+}
