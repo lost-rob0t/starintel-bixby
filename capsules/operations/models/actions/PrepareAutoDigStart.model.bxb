@@ -1,0 +1,15 @@
+action (PrepareAutoDigStart) {
+  description (Prepare an Auto-Dig run request before confirmation.)
+  type (BeginTransaction)
+  collect {
+    input (goal) {
+      type (AutoDigGoal)
+      min (Required) max (One)
+    }
+    input (targetId) {
+      type (TargetId)
+      min (Optional) max (One)
+    }
+  }
+  output (AutoDigStartDraft)
+}
