@@ -1,0 +1,15 @@
+structure (DocumentSearchResult) {
+  description (A bounded collection of StarIntel document search hits.)
+  property (query) {
+    type (DocumentQuery)
+    min (Required) max (One)
+  }
+  property (hits) {
+    type (DocumentHit)
+    min (Optional) max (Many)
+  }
+  property (correlationId) {
+    type (CorrelationId)
+    min (Required) max (One)
+  }
+}
