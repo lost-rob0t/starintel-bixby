@@ -1,0 +1,23 @@
+structure (DocumentHit) {
+  description (A bounded StarIntel document search hit with a public Quasar link.)
+  property (documentId) {
+    type (DocumentId)
+    min (Required) max (One)
+  }
+  property (title) {
+    type (DocumentTitle)
+    min (Required) max (One)
+  }
+  property (summary) {
+    type (DocumentSummary)
+    min (Required) max (One)
+  }
+  property (dtype) {
+    type (DocumentType)
+    min (Required) max (One)
+  }
+  property (url) {
+    type (DocumentUrl)
+    min (Required) max (One)
+  }
+}
