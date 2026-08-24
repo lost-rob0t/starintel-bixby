@@ -70,3 +70,40 @@
 - Capsule-side dual-mode transport and authority policy implemented.
 - Issue #11 remains open because live account linking/provider declaration is genuinely blocked on =starintel-server#111=.
 - Final exact-head CI is required after this append-only evidence commit before merging the preparatory slice.
+
+* Iteration 2 - provider implementation complete, registration gate isolated
+** Analyze / remote reconciliation
+- Server authority :: =starintel-server#111= is now complete. PR #118 merged at =4f2f70126bc59e18681844019460a33709e1eba6= after exact-head Smoke #400, Container Stack #401, schema lock #287 and operational salvage #232 passed.
+- Core provider :: StarIntel now owns real =/oauth/authorize= and =/oauth/token= endpoints, existing human principals, exact client/redirect/scope validation, S256 PKCE, one-time authorization codes, short-lived OAuth bearer tokens and shared request-security-context authorization.
+- Bixby package boundary :: the merged optional =starintel-bixby= ASDF add-on consumes core OAuth, exposes Samsung-specific provider settings, and explicitly creates a normal core OAuth client. Client creation remains an operator action because it emits one-time secret material; reload/load never rotates client credentials.
+- Samsung re-check :: current Bixby documentation still requires =authorization.bxb= to contain a public =client-id= and a =client-secret-key= name whose secret value lives in Developer Center. Endpoint authorization is opt-in and optional user authorization remains the required Intelligence mode.
+- Infra reality :: =starintel-infra= declares public =ingest.starintel.actor= through =ord-edge=, but the adopted =starintel-ingest= profile explicitly does not yet own live application service takeover. Repository inventory therefore does not prove that merge =4f2f7012= is deployed at that hostname.
+
+** Adversarial review
+- Hard-code =ingest.starintel.actor= as OAuth origin from inventory alone :: REJECT. Service inventory proves public routing intent, not the running star-server revision.
+- Invent a deterministic/public OAuth client ID in capsule source :: REJECT. Current core client registration generates the real public client ID and one-time secret together; the capsule must use the registered value.
+- Commit a placeholder =authorization.bxb= to turn tests green :: REJECT. Samsung requires concrete provider/client values and a secret-key reference; fake values would produce a misleading green repository state.
+- Store the OAuth client secret in Git or the manifest :: REJECT. Only the non-secret Developer Center key name belongs in source.
+- Treat #111 as the remaining blocker :: REJECT. Provider implementation is complete; only deployment/capsule/client/Developer Center registration remains.
+
+** Decision gate
+- ACCEPT a two-stage authority state: =providerImplemented=true= and =registrationComplete=false= until all real Bixby registration values exist.
+- Keep guest Intelligence functional and keep =authorization.bxb= / endpoint authorization absent while registration is incomplete.
+- Do not start Operations or gateway work merely to avoid this truthful registration gate.
+
+** TDD - registration state
+- Tests-first commit :: =0884310ac83d96f2a5dbf8b8a2384c66dd42d72a=.
+- RED :: CI #152 failed in the new registration-state test because the inherited manifest still named =starintel-server#111= as the unresolved authority and lacked provider/registration state.
+- Production commit :: =f9455f959e30132481848c4a39e479f6376656fe= records =signedInAuthority: starintel-server-core-oauth=, provider merge =4f2f7012...=, required read/search scopes and the exact five remaining registration facts.
+- Follow-up RED :: CI #153 exposed an inherited overly broad secret policy test: it rejected the substring =clientsecret= even when used only in the non-secret requirement name =developerCenterClientSecretKey=.
+- Test-policy repair :: =a144f1f9ed92f8cc3db280c88755c80acd1e0af1= keeps actual secret/token value fields forbidden while allowing a Developer Center secret-key reference, matching the repository's existing secret-reference policy.
+
+** Operator contract
+- =docs/testing.md= now records the exact deployment/registration order using the merged Lisp add-on API: deploy/verify provider -> register final capsule ID/callback -> =load-addon= / =configure-bixby= -> explicit =create-bixby-oauth-client= -> store one-time secret in Developer Center -> commit real client ID/secret-key reference -> enable optional user authorization -> Simulator/device verification.
+- =docs/research.md= now records provider completion and distinguishes declared public ingest routing from proof of the live OAuth server revision.
+
+** Current outcome
+- Provider architecture blocker :: cleared.
+- Capsule registration/live deployment gate :: still real and intentionally unfilled.
+- No Samsung Developer Center, Simulator, private submission or Galaxy execution has been performed or claimed.
+- Exact-head CI is required on the final documentation/evidence SHA before PR #13 may merge.
