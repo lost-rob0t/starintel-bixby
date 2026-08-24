@@ -88,14 +88,14 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
         self.assertEqual([], generated, "compiled Bixby training must come from Developer Studio")
 
     def test_document_view_uses_attribution_link_not_app_launch(self):
-        view = self.read("resources/en-US/views/DocumentSearchResult.view.bxb")
+        view = self.read("resources/en/views/DocumentSearchResult.view.bxb")
         self.assertIn("result-view", view)
         self.assertIn("attribution-link", view)
         self.assertIn("document.url", view)
         self.assertNotIn("app-launch", view)
 
     def test_person_view_exposes_multiple_matches_for_disambiguation(self):
-        view = self.read("resources/en-US/views/PersonSearchResult.view.bxb")
+        view = self.read("resources/en/views/PersonSearchResult.view.bxb")
         self.assertIn("result-view", view)
         self.assertIn("personResult.matches", view)
         self.assertIn("list-of", view)
