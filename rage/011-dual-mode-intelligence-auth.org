@@ -1,0 +1,46 @@
+#+title: RAGE Work Log - StarIntel Bixby issue 11
+
+* Run identity
+- Consumed issue :: #11
+- Branch :: =rage/11-dual-mode-intelligence-auth=
+- RAGE start commit :: =acde29dfba18078c503a4eb1019cf5231b9ab0ed=
+- Start meaning :: Exact =main= head after #6 guest baseline and closeout merged. Immutable for this run.
+
+* Iteration 1
+** Analyze / research
+- Current authoritative issue :: #11 requires dual-mode Intelligence: anonymous public search plus optional signed-in StarIntel user data; #6 remains the guest baseline.
+- Repository authority :: =AGENTS.md= keeps Intelligence read-only, capsule source here, infra elsewhere, TDD/fixtures first, no credentials, no private topology, and exact truthful Samsung manual gates.
+- Samsung OAuth :: current official Bixby docs keep =authorization.bxb= at capsule root and associate it with endpoints. Current endpoint guidance supports local endpoints using OAuth and =authorization-error= for invalid/revoked credentials. Samsung's optional OAuth support allows =authorization: user: optional= so an endpoint does not force login; local JS can branch on =$vivContext.accessToken= and use OAuth HTTP methods only for signed-in requests.
+- Privacy consequence :: local JS must accept only the minimum context necessary to detect authenticated state; raw =$vivContext= must never be copied into the StarIntel request body. Samsung/Bixby identity is not StarIntel identity.
+- Provider blocker :: =starintel-server#111= still owns canonical authorize/token endpoints, Bixby client registration, redirect validation, PKCE/lifecycle, and StarIntel human-principal semantics. Do not fabricate =authorization.bxb= URLs before that exists.
+
+** Design
+- Keep the existing local JS adapters and public =/v1/bixby/person/resolve= / =/v1/bixby/documents/search= contract family.
+- Change endpoint declarations to optional user OAuth only when a real provider declaration is available; until then, model/test the dual-path local JS behavior without inventing provider URLs.
+- Local actions accept =$vivContext= only to inspect whether an access token exists. They never forward =$vivContext=, =bixbyUserId=, locale, device, location, Samsung profile, or token text in request JSON.
+- Guest request :: ordinary =http.postUrl= through the configured public gateway origin.
+- Signed-in request :: =http.oauthPostUrl= so Bixby attaches the managed OAuth credential; token material is not manually copied into headers/body/query by capsule code.
+- Invalid/expired/revoked signed-in request :: authorization failure must propagate as Bixby =authorization-error= rather than silently retrying anonymously when the authenticated path was selected.
+- Both paths use identical narrow request builders and response normalizers, preserving result bounds and mutation exclusion.
+
+** Threat model / adversarial review
+- Silent auth downgrade :: reject; a failed signed-in request cannot be retried as guest because that could hide authorization failure and return a misleading public subset.
+- Token/body/header leakage :: reject manual token plumbing; prefer Bixby's OAuth HTTP methods.
+- Ambient context leakage :: only check presence of =$vivContext.accessToken=; do not serialize or forward the context object.
+- Identity confusion :: never use =$vivContext.bixbyUserId= or Samsung account fields as a StarIntel principal.
+- Scope confusion :: Intelligence remains read/search only; no target, Auto-Dig, ingest, or admin authority.
+- Caller scope widening :: tenant/dataset authority remains server-owned and absent from capsule request builders.
+- Cross-user/cache leakage :: owning gateway/server must key authenticated responses by authenticated principal and avoid shared caching of token-bearing private responses; frozen contract issue #8 must preserve this.
+
+** Decision gate
+- ACCEPT dual-mode local endpoint architecture.
+- REALIZE now: TDD the local guest-vs-OAuth HTTP selection, no-context-forwarding, and fail-closed auth-error behavior.
+- DEFER only concrete =authorization.bxb= provider endpoints/client secret-key reference and live account linking until =starintel-server#111= provides real values.
+
+** TDD plan
+- Add deterministic RED tests requiring both actions to accept =$vivContext=, choose OAuth HTTP only when an access token is present, never manually expose token/context, and preserve normal guest behavior.
+- Implement the minimum shared policy/helper and action wiring.
+- Run exact-head CI before any merge decision.
+
+** Outcome
+- In progress.
