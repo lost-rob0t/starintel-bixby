@@ -1,0 +1,21 @@
+structure (PersonSearchResult) {
+  description ("The normalized result of a StarIntel person resolution request")
+  property (profile) {
+    type (PersonProfile)
+    min (Optional)
+    max (One)
+    visibility (Public)
+  }
+  property (matches) {
+    type (PersonMatch)
+    min (Optional)
+    max (Many)
+    visibility (Public)
+  }
+  property (ambiguous) {
+    type (core.Boolean)
+    min (Required)
+    max (One)
+    visibility (Private)
+  }
+}
