@@ -6,7 +6,7 @@ endpoints {
       authorization { user }
     }
     action-endpoint (CommitTarget) {
-      accepted-inputs (draftId, idempotencyKey)
+      accepted-inputs (draft)
       remote-endpoint ("{gateway.url}/v1/bixby/targets/commit") { method (POST) }
       authorization { user }
     }
@@ -31,7 +31,7 @@ endpoints {
       authorization { user }
     }
     action-endpoint (CommitAutoDigStart) {
-      accepted-inputs (draftId, idempotencyKey)
+      accepted-inputs (draft)
       remote-endpoint ("{gateway.url}/v1/bixby/autodig/start/commit") { method (POST) }
       authorization { user }
     }
