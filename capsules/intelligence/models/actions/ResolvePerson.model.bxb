@@ -1,0 +1,11 @@
+action (ResolvePerson) {
+  description (Resolve a person conservatively against StarIntel.)
+  type (Search)
+  collect {
+    input (query) {
+      type (PersonQuery)
+      min (Required) max (One)
+    }
+  }
+  output (PersonSearchResult)
+}
