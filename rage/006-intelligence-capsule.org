@@ -52,3 +52,57 @@
 
 ** Outcome
 - In progress.
+
+** Implementation evidence — continuation
+*** Inherited candidate
+- Inherited implementation head :: =3f7e7867b0153651b02c8af8b66a91483f9b73c1=.
+- Exact-head GitHub Actions :: CI #99 PASS before the new adversarial review slices below.
+
+*** Current Samsung runtime compatibility slice
+- Research correction :: current official Samsung JavaScript Runtime 2 guidance deprecates CommonJS-style Runtime 1 actions. Runtime 9 / JS Runtime 2 uses ES modules and =export default= action functions. The inherited branch mixed ES-module helpers with CommonJS action exports and did not pin the runtime, which could falsely pass repository CI while failing Bixby Developer Studio.
+- Tests-first candidate :: =55d7d5f5d843440f2cab3792868f5a0baf2176ab=.
+- RED :: CI #100 failed exactly on missing =runtime-version (9)= while all prior structural/security tests stayed green.
+- Production commits :: =8fe24643ced478d132c601d936075aeb17924044= pins runtime 9 / JS runtime 2; =af62efed57c4b358e4f41e1bb0cc3df985efc558= and =5d6d90a43bc21e19f34cbef1f5962f9263c6eada= convert both actions to Runtime-2 =export default= syntax.
+- GREEN :: CI #103 PASS at exact head =5d6d90a43bc21e19f34cbef1f5962f9263c6eada=.
+
+*** Bounded request-contract slice
+- Tests-first candidate :: =50df4a8db7246a48697a26649c3cbef4dd2a21e2=.
+- Required behavior :: person requests contain only a trimmed non-empty query; document requests contain only trimmed =query=/=personId=/=dtype= plus a bounded =limit=; document search requires query or selected-person context; arbitrary caller fields never cross the capsule boundary.
+- RED :: CI #104 failed only in the new JavaScript tests because request builders did not yet exist.
+- Production commit :: =320adaed8742e2953f733b235b077cdd69e6a136=.
+- GREEN :: CI #105 PASS.
+
+*** Public gateway action-wiring slice
+- Tests-first candidate :: =bb5363737882a2c676e676fd177befaef38ff09b=.
+- Required behavior :: both actions use Samsung Runtime-2 =config= + =http= modules, read only Developer Center key =starintel.gateway.origin=, and call only =/v1/bixby/person/resolve= or =/v1/bixby/documents/search=. No target/Auto-Dig/internal host route is present.
+- RED :: CI #106 failed on the new action-wiring assertion because the action endpoints were still fail-closed placeholders.
+- Production commits :: =bd3af636778a98e3b25d130f58cc727875c577d9= and =28c5664f548d53d45c7f42a27b3599f66ac01264=.
+- GREEN :: CI #108 PASS at exact head =28c5664f548d53d45c7f42a27b3599f66ac01264=.
+
+*** Defensive result-normalization slice
+- Threat found :: returning gateway JSON untouched would let an accidental future gateway field leak raw backend metadata to Bixby and would trust document URLs without defense in depth.
+- Tests-first candidate :: =48cc5579dac710bb8a7996e7c064a04760d74cb4=.
+- Required behavior :: project person/document results onto Bixby model fields only; reject a selected profile when the backend simultaneously reports multiple ambiguous matches; bound documents; reject non-HTTPS, private/internal, and raw =/api= or =/v1= document links.
+- RED :: CI #109 failed only in the new JavaScript tests because result normalizers did not exist.
+- Production commit :: =f136e5a982d9f4a373f71932a5206104ca504b6c= implemented the narrow model projection and URL defenses.
+- Harness failure :: CI #110 showed all Python and JavaScript product tests green but the repository tree validator crashed while parsing a JavaScript URL-regex literal as a real IPv6 URL. This is a test-harness defect, not an architecture failure, and is preserved here as evidence.
+- Regression test :: =4aad6e46039c9ee650e44801365e21e43a0ff5f1= reproduces the policy-scanner crash on JavaScript regex source.
+- Harness repair :: =5ff9cb7bdcb2ee73b40b570bc458b7dbb413000c= ignores escaped regex-source URL tokens while malformed unescaped URL-like endpoints fail closed.
+
+*** Normalizer integration slice
+- Tests-first candidate :: =83446d13da010b1d19018569ea3cce8b401c7017=.
+- RED :: CI #113 failed on the new static assertion because the two action files had not yet applied the result normalizers.
+- Production commits :: =d33bfda0917f2da428602f8fad0e932337ddef43= and =408d0e6a1b60212f24d140cd799255cd5fbc4225= wire person/document responses through the model normalizers, preserving the requested document limit.
+- Candidate CI #115 reached green Python and JavaScript product tests but still used the pre-repair policy scanner in its checkout and therefore failed the same preserved tree-validation defect. A later exact-head gate after the harness repair is required.
+
+*** OAuth ownership boundary
+- Live re-check :: current =lost-rob0t/starintel-server= still exposes no proven public OAuth 2 authorization-code authorize/token authority suitable for Bixby. No provider URLs are fabricated.
+- Owning blocker :: =lost-rob0t/starintel-server#111= opened to implement the canonical scoped public OAuth authority, including least-privilege scopes, client/redirect validation, token lifecycle, and deterministic auth/security tests.
+- Intelligence authority contract :: only =starintel.read= and =starintel.search= are required. Target-write and Auto-Dig-control scopes remain forbidden in this capsule.
+- =authorization.bxb= remains intentionally absent until #111 provides real endpoints. Samsung Developer Center secret values must remain outside Git; only a future secret-key reference is allowed here.
+
+*** Current state
+- Real read-only action boundary :: implemented for person resolution and document search against the configured public Bixby gateway family.
+- Gateway implementation :: still prohibited until issue #8 freezes the complete capsule contract; =starintel-labs/starintel-infra#34= remains the owning infra epic.
+- Proprietary validation :: Bixby Developer Studio compile/training, Simulator, Developer Center registration/private submission, OAuth client registration, and Galaxy device execution have not been performed and are not claimed.
+- Outcome :: in progress pending an exact-head green gate for the harness-repaired branch, remaining issue #6 static/context/scope acceptance review, and canonical OAuth availability from =starintel-server#111=.
