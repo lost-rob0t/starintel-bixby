@@ -1,0 +1,15 @@
+{
+  "editor": "Bixby Training Editor 2.1",
+  "generated_training_source_must_not_be_hand_edited": true,
+  "entries": [
+    {"utterance": "Ask StarIntel who is John Smith", "goal": "ResolvePerson", "slots": {"query": "John Smith"}},
+    {"utterance": "Who is John Smith", "goal": "ResolvePerson", "slots": {"query": "John Smith"}},
+    {"utterance": "Who is this person", "goal": "ResolvePerson", "cold_start": "prompt-for-person", "continuation": true},
+    {"utterance": "The one from Example Corp", "goal": "ResolvePerson", "continuation": true, "purpose": "refine an ambiguous person using prior result context"},
+    {"utterance": "Tell me more about this person", "goal": "ResolvePerson", "continuation": true},
+    {"utterance": "Search StarIntel for documents about Palantir", "goal": "SearchDocuments", "slots": {"query": "Palantir"}},
+    {"utterance": "Find StarIntel articles about Palantir", "goal": "SearchDocuments", "slots": {"query": "Palantir", "dtype": "article"}},
+    {"utterance": "Find documents about this person", "goal": "SearchDocuments", "continuation": true},
+    {"utterance": "Show five documents about Palantir", "goal": "SearchDocuments", "slots": {"query": "Palantir", "limit": 5}}
+  ]
+}
