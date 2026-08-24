@@ -1,0 +1,5 @@
+structure (AutoDigRunList) {
+  description (A bounded list of Auto-Dig runs.)
+  property (runs) { type (AutoDigRun) min (Optional) max (Many) }
+  property (correlationId) { type (CorrelationId) min (Required) max (One) }
+}
