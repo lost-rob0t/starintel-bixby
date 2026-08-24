@@ -65,13 +65,24 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
         self.assertIn("normalizeDocumentSearchResult", documents)
         self.assertIn("request.limit", documents)
 
-    def test_auth_requirements_are_authorization_code_and_read_search_only(self):
+    def test_intelligence_authority_is_public_auth_free_and_context_minimized(self):
         requirements = json.loads(self.read("auth.requirements.json"))
-        self.assertEqual("oauth2-authorization-code", requirements["authorizationType"])
-        self.assertEqual(["starintel.read", "starintel.search"], requirements["requiredScopes"])
-        self.assertEqual("starintel-server#111", requirements["providerBlocker"])
+        self.assertEqual("none", requirements["authorizationType"])
+        self.assertEqual([], requirements["requiredScopes"])
+        self.assertEqual("starintel-server#109", requirements["publicAuthority"])
+        self.assertEqual("server-owned-synthetic-public-read-context", requirements["principalMode"])
+        self.assertFalse(requirements["forwardVivContext"])
         serialized = json.dumps(requirements).lower()
-        for forbidden in ("targets.write", "autodig", "clientsecret", "client_secret", "tokenvalue"):
+        for forbidden in (
+            "targets.write",
+            "autodig",
+            "clientsecret",
+            "client_secret",
+            "tokenvalue",
+            "providerblocker",
+            "developercentersecretkey",
+            "oauth2-authorization-code",
+        ):
             self.assertNotIn(forbidden, serialized)
 
     def test_person_contract_models_exist(self):
@@ -125,6 +136,7 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
         self.assertIn("action-endpoint (SearchDocuments)", endpoints)
         self.assertIn("local-endpoint (SearchDocuments.js)", endpoints)
         self.assertNotIn("remote-endpoint", endpoints)
+        self.assertNotIn("authorization", endpoints.lower())
 
     def test_training_seed_covers_lookup_and_contextual_followups(self):
         training = self.read("training/intelligence.aligned.txt")
