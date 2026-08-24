@@ -1,0 +1,3 @@
+text (PersonName) {
+  description (A display name or alias for a StarIntel person.)
+}
