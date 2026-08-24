@@ -1,0 +1,19 @@
+action (PrepareTarget) {
+  description (Prepare and normalize a StarIntel target before confirmation.)
+  type (BeginTransaction)
+  collect {
+    input (subject) {
+      type (TargetSubject)
+      min (Required) max (One)
+    }
+    input (targetType) {
+      type (TargetType)
+      min (Optional) max (One)
+    }
+    input (actor) {
+      type (TargetActor)
+      min (Optional) max (One)
+    }
+  }
+  output (TargetDraft)
+}
