@@ -1,0 +1,11 @@
+authorization {
+  user {
+    oauth2-authorization-code (StarIntel) {
+      authorize-endpoint ("{oauth.authorize.url}")
+      client-id ("{oauth.client.id}")
+      client-secret-key (starintel-intelligence-client-secret)
+      scope ("starintel.read starintel.search")
+      token-endpoint ("{oauth.token.url}")
+    }
+  }
+}
