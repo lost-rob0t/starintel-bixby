@@ -1,11 +1,11 @@
 endpoints {
   action-endpoints {
     action-endpoint (ResolvePerson) {
-      accepted-inputs (query)
+      accepted-inputs (query, $vivContext)
       local-endpoint (ResolvePerson.js)
     }
     action-endpoint (SearchDocuments) {
-      accepted-inputs (query, personId, dtype, limit)
+      accepted-inputs (query, personId, dtype, limit, $vivContext)
       local-endpoint (SearchDocuments.js)
     }
   }
