@@ -1,0 +1,6 @@
+structure (AutoDigRunReceipt) {
+  description (The immediate receipt for an Auto-Dig run operation.)
+  property (runId) { type (AutoDigRunId) min (Required) max (One) }
+  property (status) { type (AutoDigRunStatus) min (Required) max (One) }
+  property (correlationId) { type (CorrelationId) min (Required) max (One) }
+}
