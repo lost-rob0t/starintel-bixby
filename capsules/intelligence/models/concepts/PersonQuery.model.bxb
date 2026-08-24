@@ -1,0 +1,3 @@
+text (PersonQuery) {
+  description (A natural-language query identifying a person in StarIntel.)
+}
