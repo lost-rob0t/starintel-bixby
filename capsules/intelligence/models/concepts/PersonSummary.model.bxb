@@ -1,0 +1,3 @@
+text (PersonSummary) {
+  description (A short StarIntel person summary safe for Bixby presentation.)
+}
