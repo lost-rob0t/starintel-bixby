@@ -1,0 +1,14 @@
+confirmation-view {
+  match {
+    OperationConfirmation {
+      confirming {
+        CommitTarget (action)
+      }
+    }
+  }
+  message ("Create this StarIntel target?")
+  mode (Transactional)
+  render {
+    nothing
+  }
+}
