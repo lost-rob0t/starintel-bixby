@@ -1,0 +1,220 @@
+{
+  "contract": "starintel-bixby",
+  "version": "1.0.0",
+  "base_path": "/v1/bixby",
+  "transport": {
+    "scheme": "https",
+    "content_type": "application/json",
+    "correlation_header": "X-Correlation-ID"
+  },
+  "limits": {
+    "document_results_default": 5,
+    "document_results_max": 10,
+    "person_candidates_max": 5,
+    "query_chars_max": 512
+  },
+  "errors": [
+    "UNAUTHORIZED",
+    "FORBIDDEN",
+    "INVALID_REQUEST",
+    "PERSON_NOT_FOUND",
+    "AMBIGUOUS_PERSON",
+    "DOCUMENTS_NOT_FOUND",
+    "TARGET_TYPE_UNSUPPORTED",
+    "ACTOR_UNSUPPORTED",
+    "AUTODIG_CAPABILITY_UNAVAILABLE",
+    "AUTODIG_RUN_NOT_FOUND",
+    "RATE_LIMITED",
+    "UPSTREAM_TIMEOUT",
+    "UPSTREAM_UNAVAILABLE",
+    "INTERNAL_ERROR"
+  ],
+  "capsules": {
+    "intelligence": {
+      "scopes": ["starintel.read", "starintel.search"],
+      "mutation_scopes": []
+    },
+    "operations": {
+      "scopes": [
+        "starintel.read",
+        "starintel.targets.write",
+        "starintel.autodig.read",
+        "starintel.autodig.control"
+      ]
+    }
+  },
+  "endpoints": [
+    {
+      "id": "person.resolve",
+      "capsule": "intelligence",
+      "method": "POST",
+      "path": "/v1/bixby/person/resolve",
+      "scopes": ["starintel.read"],
+      "request": "PersonResolveRequest",
+      "response": "PersonSearchResult",
+      "confirmation": false
+    },
+    {
+      "id": "documents.search",
+      "capsule": "intelligence",
+      "method": "POST",
+      "path": "/v1/bixby/documents/search",
+      "scopes": ["starintel.search"],
+      "request": "DocumentSearchRequest",
+      "response": "DocumentSearchResult",
+      "confirmation": false
+    },
+    {
+      "id": "targets.prepare",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/targets/prepare",
+      "scopes": ["starintel.targets.write"],
+      "request": "TargetPrepareRequest",
+      "response": "TargetDraft",
+      "confirmation": false
+    },
+    {
+      "id": "targets.commit",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/targets/commit",
+      "scopes": ["starintel.targets.write"],
+      "request": "TargetCommitRequest",
+      "response": "TargetReceipt",
+      "confirmation": true,
+      "idempotency": "required"
+    },
+    {
+      "id": "autodig.status",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/autodig/status",
+      "scopes": ["starintel.autodig.read"],
+      "request": "AutoDigStatusRequest",
+      "response": "AutoDigStatus",
+      "confirmation": false
+    },
+    {
+      "id": "autodig.run",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/autodig/run",
+      "scopes": ["starintel.autodig.read"],
+      "request": "AutoDigRunRequest",
+      "response": "AutoDigRun",
+      "confirmation": false
+    },
+    {
+      "id": "autodig.runs",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/autodig/runs",
+      "scopes": ["starintel.autodig.read"],
+      "request": "AutoDigRunsRequest",
+      "response": "AutoDigRunList",
+      "confirmation": false
+    },
+    {
+      "id": "autodig.start.prepare",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/autodig/start/prepare",
+      "scopes": ["starintel.autodig.control"],
+      "request": "AutoDigStartPrepareRequest",
+      "response": "AutoDigStartDraft",
+      "confirmation": false
+    },
+    {
+      "id": "autodig.start.commit",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/autodig/start/commit",
+      "scopes": ["starintel.autodig.control"],
+      "request": "AutoDigStartCommitRequest",
+      "response": "AutoDigRunReceipt",
+      "confirmation": true,
+      "idempotency": "required"
+    },
+    {
+      "id": "autodig.pause",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/autodig/pause",
+      "scopes": ["starintel.autodig.control"],
+      "request": "AutoDigControlRequest",
+      "response": "AutoDigRunReceipt",
+      "confirmation": true
+    },
+    {
+      "id": "autodig.resume",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/autodig/resume",
+      "scopes": ["starintel.autodig.control"],
+      "request": "AutoDigControlRequest",
+      "response": "AutoDigRunReceipt",
+      "confirmation": true
+    },
+    {
+      "id": "autodig.stop",
+      "capsule": "operations",
+      "method": "POST",
+      "path": "/v1/bixby/autodig/stop",
+      "scopes": ["starintel.autodig.control"],
+      "request": "AutoDigControlRequest",
+      "response": "AutoDigRunReceipt",
+      "confirmation": true
+    }
+  ],
+  "shapes": {
+    "ErrorEnvelope": {
+      "required": ["error", "message", "correlation_id"]
+    },
+    "PersonResolveRequest": {
+      "required": ["query"]
+    },
+    "PersonSearchResult": {
+      "required": ["status", "query", "candidates", "correlation_id"],
+      "status": ["matched", "ambiguous", "not_found"]
+    },
+    "PersonMatch": {
+      "required": ["person_id", "display_name", "summary"]
+    },
+    "DocumentSearchRequest": {
+      "required": ["query"],
+      "optional": ["dtype", "person_id", "limit"]
+    },
+    "DocumentSearchResult": {
+      "required": ["query", "hits", "correlation_id"]
+    },
+    "DocumentHit": {
+      "required": ["document_id", "title", "summary", "dtype", "url"]
+    },
+    "TargetPrepareRequest": {
+      "required": ["subject"],
+      "optional": ["target_type", "actor"]
+    },
+    "TargetDraft": {
+      "required": ["draft_id", "subject", "target_type", "actor", "summary", "idempotency_key", "correlation_id"]
+    },
+    "TargetCommitRequest": {
+      "required": ["draft_id", "idempotency_key"]
+    },
+    "TargetReceipt": {
+      "required": ["target_id", "status", "actor", "subject", "correlation_id"]
+    },
+    "AutoDigStartDraft": {
+      "required": ["draft_id", "goal", "summary", "idempotency_key", "correlation_id"]
+    },
+    "AutoDigStartCommitRequest": {
+      "required": ["draft_id", "idempotency_key"]
+    },
+    "AutoDigRunReceipt": {
+      "required": ["run_id", "status", "correlation_id"]
+    },
+    "AutoDigControlRequest": {
+      "required": ["run_id"]
+    }
+  }
+}
