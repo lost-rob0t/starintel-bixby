@@ -1,0 +1,3 @@
+text (PersonIdentifier) {
+  description (A public identifier used to distinguish matching people.)
+}
