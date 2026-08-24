@@ -1,0 +1,44 @@
+result-view {
+  match {
+    DocumentSearchResult (result) {
+      min (Required) max (One)
+    }
+  }
+  message {
+    if (size(result.hits) == 0) {
+      template ("I couldn't find matching StarIntel documents.")
+    } else {
+      template ("I found #{size(result.hits)} StarIntel documents.")
+    }
+  }
+  render {
+    if (size(result.hits) == 0) {
+      nothing
+    } else {
+      layout {
+        content {
+          for-each (result.hits) {
+            as (hit) {
+              section {
+                title ("#{value(hit.title)}")
+                content {
+                  paragraph ("#{value(hit.summary)}")
+                  single-line {
+                    text {
+                      value ("#{value(hit.dtype)}")
+                      style (Detail_S)
+                    }
+                  }
+                  attribution-link {
+                    label ("Open document")
+                    url ("#{value(hit.url)}")
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
