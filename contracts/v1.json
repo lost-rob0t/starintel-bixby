@@ -2,6 +2,7 @@
   "contract": "starintel-bixby",
   "version": "1.0.0",
   "base_path": "/v1/bixby",
+  "wire_case": "camelCase",
   "transport": {
     "scheme": "https",
     "content_type": "application/json",
@@ -169,52 +170,62 @@
   ],
   "shapes": {
     "ErrorEnvelope": {
-      "required": ["error", "message", "correlation_id"]
+      "required": ["error", "message", "correlationId"]
     },
     "PersonResolveRequest": {
       "required": ["query"]
     },
     "PersonSearchResult": {
-      "required": ["status", "query", "candidates", "correlation_id"],
+      "required": ["status", "query", "candidates", "correlationId"],
       "status": ["matched", "ambiguous", "not_found"]
     },
     "PersonMatch": {
-      "required": ["person_id", "display_name", "summary"]
+      "required": ["personId", "displayName", "summary"]
     },
     "DocumentSearchRequest": {
       "required": ["query"],
-      "optional": ["dtype", "person_id", "limit"]
+      "optional": ["dtype", "personId", "limit"]
     },
     "DocumentSearchResult": {
-      "required": ["query", "hits", "correlation_id"]
+      "required": ["query", "hits", "correlationId"]
     },
     "DocumentHit": {
-      "required": ["document_id", "title", "summary", "dtype", "url"]
+      "required": ["documentId", "title", "summary", "dtype", "url"]
     },
     "TargetPrepareRequest": {
       "required": ["subject"],
-      "optional": ["target_type", "actor"]
+      "optional": ["targetType", "actor"]
     },
     "TargetDraft": {
-      "required": ["draft_id", "subject", "target_type", "actor", "summary", "idempotency_key", "correlation_id"]
+      "required": ["draftId", "subject", "targetType", "actor", "summary", "idempotencyKey", "correlationId"]
     },
     "TargetCommitRequest": {
-      "required": ["draft_id", "idempotency_key"]
+      "required": ["draft"]
     },
     "TargetReceipt": {
-      "required": ["target_id", "status", "actor", "subject", "correlation_id"]
+      "required": ["targetId", "status", "actor", "subject", "correlationId"]
+    },
+    "AutoDigStartPrepareRequest": {
+      "required": ["goal"],
+      "optional": ["targetId"]
     },
     "AutoDigStartDraft": {
-      "required": ["draft_id", "goal", "summary", "idempotency_key", "correlation_id"]
+      "required": ["draftId", "goal", "summary", "idempotencyKey", "correlationId"]
     },
     "AutoDigStartCommitRequest": {
-      "required": ["draft_id", "idempotency_key"]
+      "required": ["draft"]
+    },
+    "AutoDigRunRequest": {
+      "required": ["runId"]
+    },
+    "AutoDigRunsRequest": {
+      "optional": ["limit"]
     },
     "AutoDigRunReceipt": {
-      "required": ["run_id", "status", "correlation_id"]
+      "required": ["runId", "status", "correlationId"]
     },
     "AutoDigControlRequest": {
-      "required": ["run_id"]
+      "required": ["runId"]
     }
   }
 }
