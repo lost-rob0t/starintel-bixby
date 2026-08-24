@@ -1,0 +1,27 @@
+{
+  "status": 200,
+  "request": {
+    "query": "public corruption",
+    "dtype": "pdf",
+    "limit": 5
+  },
+  "response": {
+    "query": "public corruption",
+    "documents": [
+      {
+        "id": "doc-001",
+        "title": "Public Record Example",
+        "summary": "A normalized document fixture used to verify the Bixby-facing contract.",
+        "dtype": "pdf",
+        "url": "https://docs.example.com/documents/doc-001"
+      },
+      {
+        "id": "doc-002",
+        "title": "Second Public Record",
+        "summary": "A second bounded result.",
+        "dtype": "pdf",
+        "url": "https://docs.example.com/documents/doc-002"
+      }
+    ]
+  }
+}
