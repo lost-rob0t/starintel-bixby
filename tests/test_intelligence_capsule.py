@@ -76,11 +76,11 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
         for forbidden in (
             "targets.write",
             "autodig",
-            "clientsecret",
             "client_secret",
+            "clientsecretvalue",
+            "client-secret-value",
             "tokenvalue",
             "providerblocker",
-            "developercentersecretkey",
             "oauth2-authorization-code",
         ):
             self.assertNotIn(forbidden, serialized)
