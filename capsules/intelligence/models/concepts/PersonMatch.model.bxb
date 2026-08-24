@@ -1,0 +1,27 @@
+structure (PersonMatch) {
+  description (A conservative StarIntel person candidate safe for Bixby presentation.)
+  property (personId) {
+    type (PersonId)
+    min (Required) max (One)
+  }
+  property (displayName) {
+    type (PersonName)
+    min (Required) max (One)
+  }
+  property (aliases) {
+    type (PersonName)
+    min (Optional) max (Many)
+  }
+  property (identifiers) {
+    type (PersonIdentifier)
+    min (Optional) max (Many)
+  }
+  property (summary) {
+    type (PersonSummary)
+    min (Required) max (One)
+  }
+  property (confidence) {
+    type (Confidence)
+    min (Optional) max (One)
+  }
+}
