@@ -1,0 +1,3 @@
+text (PersonQuery) {
+  description ("A natural-language person lookup query sent to StarIntel")
+}
