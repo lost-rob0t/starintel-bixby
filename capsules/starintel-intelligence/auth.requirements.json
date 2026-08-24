@@ -4,11 +4,21 @@
   "publicAuthority": "starintel-server#109",
   "principalMode": "server-owned-synthetic-public-read-context",
   "signedInMode": "optional-user",
-  "signedInAuthority": "starintel-server#111",
+  "signedInAuthority": "starintel-server-core-oauth",
+  "providerImplemented": true,
+  "providerMerge": "4f2f70126bc59e18681844019460a33709e1eba6",
   "signedInScopes": [
     "documents:read",
     "search:read"
   ],
+  "registrationRequired": [
+    "deployedPublicOauthOrigin",
+    "registeredCapsuleId",
+    "registeredRedirectUri",
+    "oauthClientId",
+    "developerCenterClientSecretKey"
+  ],
+  "registrationComplete": false,
   "forwardVivContext": false,
   "manualTokenForwarding": false,
   "useBixbyUserIdAsPrincipal": false
