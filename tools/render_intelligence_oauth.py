@@ -183,6 +183,27 @@ def _replace_text(path: pathlib.Path, content: str) -> None:
             temporary_path.unlink()
 
 
+def _commit_sources(updates: list[tuple[pathlib.Path, str]]) -> None:
+    """Apply a small file transaction and restore the original tree on failure."""
+    originals = {
+        path: (path.exists(), path.read_text(encoding="utf-8") if path.exists() else None)
+        for path, _ in updates
+    }
+    written: list[pathlib.Path] = []
+    try:
+        for path, content in updates:
+            _replace_text(path, content)
+            written.append(path)
+    except Exception:
+        for path in reversed(written):
+            existed, content = originals[path]
+            if existed:
+                _replace_text(path, content or "")
+            elif path.exists():
+                path.unlink()
+        raise
+
+
 def finalize_capsule_tree(
     capsule_root: pathlib.Path | str,
     capsule_id: str,
@@ -212,10 +233,14 @@ def finalize_capsule_tree(
         if current_authorization != finalized["authorization.bxb"]:
             raise ValueError("authorization.bxb already exists with different registration metadata")
 
-    # All parsing/authority/registration validation is complete before the first write.
-    _replace_text(capsule_path, finalized["capsule.bxb"])
-    _replace_text(endpoints_path, finalized["endpoints.bxb"])
-    _replace_text(authorization_path, finalized["authorization.bxb"])
+    # All parsing/authority/registration validation completes before any write.
+    _commit_sources(
+        [
+            (capsule_path, finalized["capsule.bxb"]),
+            (endpoints_path, finalized["endpoints.bxb"]),
+            (authorization_path, finalized["authorization.bxb"]),
+        ]
+    )
     return finalized
 
 
