@@ -31,6 +31,21 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
                 self.assertNotIn("module.exports", action)
                 self.assertNotIn("require(", action)
 
+    def test_actions_use_configured_public_gateway_and_only_read_only_bixby_routes(self):
+        resolve = self.read("code/ResolvePerson.js")
+        documents = self.read("code/SearchDocuments.js")
+        for source in (resolve, documents):
+            self.assertIn("import http from 'http'", source)
+            self.assertIn("import config from 'config'", source)
+            self.assertIn("config.get('starintel.gateway.origin')", source)
+            self.assertNotIn(".star.intel", source)
+            self.assertNotIn("targets/", source.lower())
+            self.assertNotIn("autodig/", source.lower())
+        self.assertIn("/v1/bixby/person/resolve", resolve)
+        self.assertIn("buildPersonResolveRequest", resolve)
+        self.assertIn("/v1/bixby/documents/search", documents)
+        self.assertIn("buildDocumentSearchRequest", documents)
+
     def test_person_contract_models_exist(self):
         required = {
             "models/primitives/PersonQuery.model.bxb": "text (PersonQuery)",
