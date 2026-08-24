@@ -1,0 +1,11 @@
+action (GetAutoDigRun) {
+  description (Get one authoritative Auto-Dig run by durable run identifier.)
+  type (Search)
+  collect {
+    input (runId) {
+      type (AutoDigRunId)
+      min (Required) max (One)
+    }
+  }
+  output (AutoDigRun)
+}
