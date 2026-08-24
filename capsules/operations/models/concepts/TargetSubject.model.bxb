@@ -1,0 +1,3 @@
+text (TargetSubject) {
+  description (A user-facing subject to target in StarIntel.)
+}
