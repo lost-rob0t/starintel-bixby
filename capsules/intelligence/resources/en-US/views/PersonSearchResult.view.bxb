@@ -1,0 +1,52 @@
+result-view {
+  match {
+    PersonSearchResult (result) {
+      min (Required) max (One)
+    }
+  }
+  message {
+    if (result.status == 'matched' && exists(result.selected)) {
+      template ("#{value(result.selected.displayName)}. #{value(result.selected.summary)}")
+    } else-if (result.status == 'ambiguous') {
+      template ("I found #{size(result.candidates)} people. Tell me which one you mean using one of the details shown.")
+    } else {
+      template ("I couldn't find that person in StarIntel.")
+    }
+  }
+  render {
+    if (result.status == 'matched' && exists(result.selected)) {
+      layout {
+        section {
+          title ("#{value(result.selected.displayName)}")
+          content {
+            paragraph ("#{value(result.selected.summary)}")
+          }
+        }
+      }
+    } else-if (result.status == 'ambiguous') {
+      layout {
+        section {
+          title ("Which person?")
+          content {
+            partitioned {
+              content {
+                for-each (result.candidates) {
+                  as (candidate) {
+                    single-line {
+                      text {
+                        value ("#{value(candidate.displayName)} — #{value(candidate.summary)}")
+                        style (Detail_L)
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } else {
+      nothing
+    }
+  }
+}
