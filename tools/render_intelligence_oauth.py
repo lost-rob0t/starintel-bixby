@@ -135,13 +135,17 @@ def _annotate_optional_user(source: str, action: str) -> str:
             return source
         raise ValueError(f"{action} endpoint already contains conflicting authorization")
 
-    line_start = source.rfind("\n", match.start(), close_index) + 1
-    close_indent = source[line_start:close_index]
-    if close_indent.strip():
-        raise ValueError(f"unable to determine closing indentation for {action}")
     child_indent = match.group(1) + "  "
-    insertion = f"{child_indent}{_OPTIONAL_USER_AUTH}\n"
-    return source[:line_start] + insertion + source[line_start:]
+    close_line_start = source.rfind("\n", match.start(), close_index) + 1
+    close_prefix = source[close_line_start:close_index]
+    if not close_prefix.strip():
+        insertion = f"{child_indent}{_OPTIONAL_USER_AUTH}\n"
+        return source[:close_line_start] + insertion + source[close_line_start:]
+
+    # Compact one-line endpoint blocks are valid source too. Expand only the
+    # opening edge, preserving the existing endpoint body and closing brace.
+    insertion = f"\n{child_indent}{_OPTIONAL_USER_AUTH}\n{child_indent}"
+    return source[: open_index + 1] + insertion + source[open_index + 1 :]
 
 
 def finalize_registered_sources(
