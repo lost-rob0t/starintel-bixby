@@ -1,0 +1,25 @@
+{
+  "status": 200,
+  "request": {
+    "query": "John Smith"
+  },
+  "response": {
+    "query": "John Smith",
+    "matches": [
+      {
+        "id": "person-001",
+        "name": "John Smith",
+        "aliases": ["Johnny Smith"],
+        "knownIdentifiers": ["public-record:js-001"],
+        "score": 0.98
+      }
+    ],
+    "profile": {
+      "id": "person-001",
+      "name": "John Smith",
+      "aliases": ["Johnny Smith"],
+      "knownIdentifiers": ["public-record:js-001"],
+      "summary": "A normalized public StarIntel person profile fixture."
+    }
+  }
+}
