@@ -1,0 +1,4 @@
+boolean (OperationConfirmation) {
+  description (Explicit confirmation for a StarIntel state-changing operation.)
+  extends (core.Confirmation)
+}
