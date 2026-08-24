@@ -1,0 +1,14 @@
+action (CommitTarget) {
+  description (Commit a prepared StarIntel target after explicit user confirmation.)
+  type (Commit)
+  collect {
+    input (draft) {
+      type (TargetDraft)
+      min (Required) max (One)
+    }
+  }
+  confirm {
+    by (OperationConfirmation)
+  }
+  output (TargetReceipt)
+}
