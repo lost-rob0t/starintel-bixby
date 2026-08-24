@@ -1,0 +1,3 @@
+text (AutoDigRunId) {
+  description (A durable Auto-Dig run identifier.)
+}
