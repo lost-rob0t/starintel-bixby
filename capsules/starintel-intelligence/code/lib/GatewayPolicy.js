@@ -19,6 +19,10 @@ export class GatewayError extends Error {
   }
 }
 
+function internalError() {
+  return new GatewayError('INTERNAL_ERROR', 'StarIntel returned an invalid response.')
+}
+
 function hostFromOrigin(origin) {
   const match = /^https:\/\/([^/?#]+)\/?$/i.exec(origin)
   if (!match) {
@@ -113,6 +117,19 @@ function optionalText(value) {
   return text || undefined
 }
 
+function requiredText(value) {
+  const text = optionalText(value)
+  if (!text) throw internalError()
+  return text
+}
+
+function optionalTextArray(value) {
+  if (value === undefined || value === null) return undefined
+  if (!Array.isArray(value)) throw internalError()
+  const items = value.map(optionalText).filter(Boolean)
+  return items.length ? items : undefined
+}
+
 export function buildPersonResolveRequest(query) {
   const cleanQuery = optionalText(query)
   if (!cleanQuery) {
@@ -135,6 +152,107 @@ export function buildDocumentSearchRequest(input = {}) {
   if (dtype) request.dtype = dtype
   request.limit = boundedDocumentLimit(input.limit)
   return request
+}
+
+function normalizePersonMatch(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
+  const result = {
+    id: requiredText(value.id),
+    name: requiredText(value.name),
+  }
+  const aliases = optionalTextArray(value.aliases)
+  const knownIdentifiers = optionalTextArray(value.knownIdentifiers)
+  if (aliases) result.aliases = aliases
+  if (knownIdentifiers) result.knownIdentifiers = knownIdentifiers
+  if (value.score !== undefined && value.score !== null) {
+    const score = Number(value.score)
+    if (!Number.isFinite(score)) throw internalError()
+    result.score = score
+  }
+  return result
+}
+
+function normalizePersonProfile(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
+  const result = {
+    id: requiredText(value.id),
+    name: requiredText(value.name),
+  }
+  const aliases = optionalTextArray(value.aliases)
+  const knownIdentifiers = optionalTextArray(value.knownIdentifiers)
+  const summary = optionalText(value.summary)
+  if (aliases) result.aliases = aliases
+  if (knownIdentifiers) result.knownIdentifiers = knownIdentifiers
+  if (summary) result.summary = summary
+  return result
+}
+
+export function normalizePersonSearchResult(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
+  const result = { query: requiredText(value.query) }
+  const matches = value.matches === undefined || value.matches === null
+    ? []
+    : Array.isArray(value.matches)
+      ? value.matches.map(normalizePersonMatch)
+      : (() => { throw internalError() })()
+  if (value.matches !== undefined && value.matches !== null) result.matches = matches
+
+  if (value.profile !== undefined && value.profile !== null) {
+    const profile = normalizePersonProfile(value.profile)
+    if (matches.length > 1) throw internalError()
+    if (matches.length === 1 && matches[0].id !== profile.id) throw internalError()
+    result.profile = profile
+  }
+  return result
+}
+
+function validatePublicDocumentUrl(value) {
+  const text = requiredText(value)
+  if (text !== String(value)) throw internalError()
+  const match = /^https:\/\/([^/?#]+)(\/[^?#]*)?(?:[?#].*)?$/i.exec(text)
+  if (!match || match[1].includes('@')) throw internalError()
+  let host
+  try {
+    host = hostFromOrigin(`https://${match[1]}`)
+  } catch (_error) {
+    throw internalError()
+  }
+  if (isPrivateHost(host)) throw internalError()
+  const path = match[2] || '/'
+  if (/^\/(?:api|v1)(?:\/|$)/i.test(path)) throw internalError()
+  return text
+}
+
+function normalizeDocumentHit(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
+  const result = {
+    id: requiredText(value.id),
+    title: requiredText(value.title),
+    url: validatePublicDocumentUrl(value.url),
+  }
+  const summary = optionalText(value.summary)
+  const dtype = optionalText(value.dtype)
+  if (summary) result.summary = summary
+  if (dtype) result.dtype = dtype
+  return result
+}
+
+export function normalizeDocumentSearchResult(value, limit) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
+  const result = {}
+  const query = optionalText(value.query)
+  const personId = optionalText(value.personId)
+  if (query) result.query = query
+  if (personId) result.personId = personId
+
+  if (value.documents !== undefined && value.documents !== null && !Array.isArray(value.documents)) {
+    throw internalError()
+  }
+  const documents = (value.documents || [])
+    .slice(0, boundedDocumentLimit(limit))
+    .map(normalizeDocumentHit)
+  result.documents = documents
+  return result
 }
 
 function safeErrorCode(status, parsed) {
@@ -202,6 +320,8 @@ export default {
   boundedDocumentLimit,
   buildDocumentSearchRequest,
   buildPersonResolveRequest,
+  normalizeDocumentSearchResult,
+  normalizePersonSearchResult,
   postJson,
   validateGatewayOrigin,
 }
