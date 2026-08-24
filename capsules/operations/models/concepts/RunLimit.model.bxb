@@ -1,0 +1,3 @@
+integer (RunLimit) {
+  description (A bounded number of Auto-Dig runs to list.)
+}
