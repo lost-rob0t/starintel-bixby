@@ -4,6 +4,8 @@ import test from 'node:test'
 import {
   GatewayError,
   boundedDocumentLimit,
+  buildDocumentSearchRequest,
+  buildPersonResolveRequest,
   postJson,
   validateGatewayOrigin,
 } from '../../capsules/starintel-intelligence/code/lib/GatewayPolicy.js'
@@ -33,6 +35,25 @@ test('document result limit defaults to five and is clamped to one through ten',
   assert.equal(boundedDocumentLimit(0), 1)
   assert.equal(boundedDocumentLimit(3), 3)
   assert.equal(boundedDocumentLimit(99), 10)
+})
+
+test('person request accepts only a trimmed non-empty query', () => {
+  assert.deepEqual(buildPersonResolveRequest(' John Smith '), { query: 'John Smith' })
+  for (const query of [undefined, null, '', '   ']) {
+    assert.throws(() => buildPersonResolveRequest(query), error => error instanceof GatewayError && error.code === 'INVALID_REQUEST')
+  }
+})
+
+test('document request requires query or person context and emits only bounded public-contract fields', () => {
+  assert.deepEqual(
+    buildDocumentSearchRequest({ query: ' reports ', personId: ' person-42 ', dtype: ' pdf ', limit: 999, ignored: 'secret' }),
+    { query: 'reports', personId: 'person-42', dtype: 'pdf', limit: 10 },
+  )
+  assert.deepEqual(buildDocumentSearchRequest({ personId: 'person-42' }), { personId: 'person-42', limit: 5 })
+  assert.throws(
+    () => buildDocumentSearchRequest({ query: ' ', personId: ' ' }),
+    error => error instanceof GatewayError && error.code === 'INVALID_REQUEST',
+  )
 })
 
 test('postJson uses JSON POST with headers returned for explicit error handling', () => {
