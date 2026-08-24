@@ -39,6 +39,13 @@ class RepoPolicyTests(unittest.TestCase):
         })
         validate_tree(root)
 
+    def test_ignores_javascript_template_expression_that_is_not_a_literal_endpoint(self):
+        root = self.make_tree({
+            "capsules/starintel-intelligence/code/policy.js":
+                "const origin = `https://${authority}`;\n"
+        })
+        validate_tree(root)
+
     def test_rejects_committed_secret_like_assignment(self):
         root = self.make_tree({
             "capsules/starintel-operations/code/auth.js":
