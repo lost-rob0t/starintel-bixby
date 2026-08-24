@@ -1,0 +1,166 @@
+{
+  "person": {
+    "matched": {
+      "request": {"query": "John Smith"},
+      "response": {
+        "status": "matched",
+        "query": "John Smith",
+        "selected": {
+          "person_id": "person:john-smith-001",
+          "display_name": "John Smith",
+          "aliases": ["John A. Smith"],
+          "identifiers": ["Example Corp"],
+          "summary": "John Smith associated with Example Corp.",
+          "confidence": 0.97
+        },
+        "candidates": [],
+        "correlation_id": "corr-person-match-001"
+      }
+    },
+    "ambiguous": {
+      "request": {"query": "John Smith"},
+      "response": {
+        "status": "ambiguous",
+        "query": "John Smith",
+        "candidates": [
+          {
+            "person_id": "person:john-smith-001",
+            "display_name": "John Smith",
+            "aliases": ["John A. Smith"],
+            "identifiers": ["Example Corp"],
+            "summary": "John Smith associated with Example Corp.",
+            "confidence": 0.78
+          },
+          {
+            "person_id": "person:john-smith-002",
+            "display_name": "John Smith",
+            "aliases": ["Johnny Smith"],
+            "identifiers": ["Example University"],
+            "summary": "John Smith associated with Example University.",
+            "confidence": 0.76
+          }
+        ],
+        "correlation_id": "corr-person-ambiguous-001"
+      }
+    },
+    "not_found": {
+      "request": {"query": "Nobody Example"},
+      "error": {
+        "error": "PERSON_NOT_FOUND",
+        "message": "No matching person was found.",
+        "correlation_id": "corr-person-none-001"
+      }
+    }
+  },
+  "documents": {
+    "success": {
+      "request": {"query": "Palantir", "limit": 5},
+      "response": {
+        "query": "Palantir",
+        "hits": [
+          {
+            "document_id": "doc:palantir-example-001",
+            "title": "Example Palantir document",
+            "summary": "Example bounded search result.",
+            "dtype": "article",
+            "url": "https://quasar.example.invalid/documents/doc%3Apalantir-example-001"
+          }
+        ],
+        "correlation_id": "corr-docs-001"
+      }
+    },
+    "empty": {
+      "request": {"query": "nothing-matches-this", "limit": 5},
+      "error": {
+        "error": "DOCUMENTS_NOT_FOUND",
+        "message": "No matching documents were found.",
+        "correlation_id": "corr-docs-none-001"
+      }
+    }
+  },
+  "target": {
+    "prepare": {
+      "request": {"subject": "example.com", "target_type": "domain", "actor": "BBPD"},
+      "response": {
+        "draft_id": "target-draft:001",
+        "subject": "example.com",
+        "target_type": "domain",
+        "actor": "BBPD",
+        "summary": "Create a BBPD domain target for example.com.",
+        "idempotency_key": "idem-target-001",
+        "correlation_id": "corr-target-prepare-001"
+      }
+    },
+    "commit": {
+      "request": {"draft_id": "target-draft:001", "idempotency_key": "idem-target-001"},
+      "response": {
+        "target_id": "target:001",
+        "status": "created",
+        "actor": "BBPD",
+        "subject": "example.com",
+        "correlation_id": "corr-target-commit-001"
+      }
+    }
+  },
+  "autodig": {
+    "status": {
+      "request": {},
+      "response": {
+        "available": true,
+        "capabilities": ["list", "get", "start", "pause", "resume", "stop"],
+        "correlation_id": "corr-autodig-status-001"
+      }
+    },
+    "run": {
+      "request": {"run_id": "run:001"},
+      "response": {
+        "run_id": "run:001",
+        "status": "running",
+        "summary": "Researching the selected target.",
+        "correlation_id": "corr-autodig-run-001"
+      }
+    },
+    "start_prepare": {
+      "request": {"goal": "Research example.com", "target_id": "target:001"},
+      "response": {
+        "draft_id": "autodig-draft:001",
+        "goal": "Research example.com",
+        "summary": "Start Auto-Dig for target:001.",
+        "idempotency_key": "idem-autodig-001",
+        "correlation_id": "corr-autodig-prepare-001"
+      }
+    },
+    "start_commit": {
+      "request": {"draft_id": "autodig-draft:001", "idempotency_key": "idem-autodig-001"},
+      "response": {
+        "run_id": "run:001",
+        "status": "queued",
+        "correlation_id": "corr-autodig-start-001"
+      }
+    },
+    "pause": {
+      "request": {"run_id": "run:001"},
+      "response": {"run_id": "run:001", "status": "paused", "correlation_id": "corr-autodig-pause-001"}
+    },
+    "resume": {
+      "request": {"run_id": "run:001"},
+      "response": {"run_id": "run:001", "status": "running", "correlation_id": "corr-autodig-resume-001"}
+    },
+    "stop": {
+      "request": {"run_id": "run:001"},
+      "response": {"run_id": "run:001", "status": "stopped", "correlation_id": "corr-autodig-stop-001"}
+    }
+  },
+  "errors": {
+    "unauthorized": {"error": "UNAUTHORIZED", "message": "Authentication is required.", "correlation_id": "corr-error-401"},
+    "forbidden": {"error": "FORBIDDEN", "message": "This account lacks the required scope.", "correlation_id": "corr-error-403"},
+    "invalid": {"error": "INVALID_REQUEST", "message": "The request is invalid.", "correlation_id": "corr-error-400"},
+    "rate_limited": {"error": "RATE_LIMITED", "message": "Too many requests.", "correlation_id": "corr-error-429"},
+    "timeout": {"error": "UPSTREAM_TIMEOUT", "message": "StarIntel did not respond in time.", "correlation_id": "corr-error-504"},
+    "unavailable": {"error": "UPSTREAM_UNAVAILABLE", "message": "StarIntel is temporarily unavailable.", "correlation_id": "corr-error-503"},
+    "actor_unsupported": {"error": "ACTOR_UNSUPPORTED", "message": "That target actor is not available.", "correlation_id": "corr-error-actor"},
+    "target_type_unsupported": {"error": "TARGET_TYPE_UNSUPPORTED", "message": "That target type is not supported.", "correlation_id": "corr-error-target-type"},
+    "autodig_unavailable": {"error": "AUTODIG_CAPABILITY_UNAVAILABLE", "message": "Auto-Dig control is not available.", "correlation_id": "corr-error-autodig-cap"},
+    "autodig_run_missing": {"error": "AUTODIG_RUN_NOT_FOUND", "message": "That Auto-Dig run was not found.", "correlation_id": "corr-error-autodig-run"}
+  }
+}
