@@ -8,17 +8,44 @@
 
 * Iteration 1
 ** Research
-- Status :: in progress.
 - Authority :: issue #6 + parent epic #1 + merged Phase-0 docs are controlling. StarIntel Intelligence is read/search only.
+- Current Bixby model syntax :: official docs still require root =capsule.bxb=; =format (3)= is current. Action models use =*.model.bxb= and current reference names =models/action=; current quick-start examples also show conventional =models/primitives= / =models/structures= and action folders. We will use semantically grouped model files with current Bixby syntax rather than invent JSON schemas.
+- Endpoints :: current =endpoints.bxb= lives in =resources/base/= for all locales or a locale folder and supports local JavaScript and remote HTTP actions. A local JS boundary is preferred here because the gateway origin must be configuration, not an internal/hard-coded hostname.
+- Views :: current =result-view= is supported under locale resources. =attribution-link= remains preferred for explicit public-document navigation over unconditional =app-launch=.
+- Conversation :: current continuation training uses =:continue= goal specialization and can preserve prior values. This is the platform-native selected-person mechanism; no visual/screen inference belongs in the plan.
+- OAuth blocker :: current Bixby =authorization.bxb= requires concrete authorize/token endpoints for =oauth2-authorization-code= (the client secret is safely referenced by Developer Center key). Live =starintel-server= search finds password/API-key bearer auth but no canonical OAuth authorize/token surface. Therefore this issue must not invent OAuth endpoint URLs merely to make a model file look complete. Capsule read/search behavior can be structurally implemented while authorization remains explicitly integration-blocked pending a real public OAuth authority owned by StarIntel/infra.
+- Backend person-operation blocker :: Phase 0 did not prove a named canonical person-resolution operation in the StarIntel machine-readable client registry. The capsule can define Bixby-facing person contracts/actions, but backend execution remains contract-bound and must not hard-code ad-hoc CouchDB/search behavior.
 
 ** Design
-- Pending issue-specific evidence.
+- Root :: =capsules/starintel-intelligence/= with one real Bixby capsule and no Operations models/scopes.
+- Capsule identity :: development ID uses =playground.starIntelIntelligence= until the operator supplies the registered Developer Center namespace; target =bixby-mobile-en-US= and =format (3)=.
+- Models :: primitives for query/IDs/names/document scalar fields; structures for =PersonMatch=, =PersonProfile=, =PersonSearchResult=, =DocumentHit=, =DocumentSearchResult=; actions =ResolvePerson= and =SearchDocuments=.
+- Person resolution result :: normalized Bixby result carries zero/one/many ranked matches plus a selected profile only when backend resolution is unambiguous. Same-name ambiguity is represented and presented for user selection rather than first-result choice.
+- Context :: training continuations target the same person/document goal and rely on the selected =PersonMatch=/stable =PersonId= from the prior plan. Cold-start follow-up has no person value and must prompt/elicit rather than manufacture identity.
+- Documents :: =SearchDocuments= accepts query, optional dtype, optional bounded limit, and optional selected =PersonId=. Spoken/default limit contract is 5; JS endpoint adapter clamps a user-supplied limit to the capsule's bounded maximum before issuing the public gateway request.
+- Endpoint adapter :: local JS reads a Developer Center configuration key for the public gateway origin, requires HTTPS, rejects private/internal hosts, calls only tentative =/v1/bixby/person/resolve= and =/v1/bixby/documents/search= paths owned by epic #1, and returns normalized Bixby-facing objects. No StarIntel service credentials exist here.
+- OAuth :: do not create a fabricated =authorization.bxb=. Add a static integration manifest documenting required Intelligence scopes and a validator that will require real authorization once canonical public OAuth endpoints are supplied. Issue #8 remains the freeze gate for the final auth/HTTP contract.
+- Views :: person search provides explicit ambiguity list/details; document search renders bounded results and uses =attribution-link= for =DocumentUrl=.
 
 ** Adversarial review
-- Pending.
+- Fake OAuth URLs :: rejected; would make local validation green while guaranteeing broken real auth.
+- Direct remote endpoint to internal StarIntel :: rejected; public gateway/configured-origin JS boundary is required.
+- One =PersonProfile= chosen from first match :: rejected; violates same-name ambiguity requirement.
+- Storing selected person in arbitrary JavaScript global/session state :: rejected; Bixby continuation/planner context should own conversational selection, while backend stable ID is revalidated.
+- Treating phrase "this person" as camera/screen context :: rejected; cold start must prompt and v1 has no visual inference.
+- Unbounded document result model :: rejected; voice/UI result count must remain bounded.
+- Hard-coded public document origin in capsule :: rejected; current infra has not declared canonical Quasar public origin. Capsule only renders backend-provided =DocumentUrl= and repository policy rejects private URLs.
+- Quietly granting target/Auto-Dig scopes to simplify later reuse :: rejected; Intelligence stays least-privilege.
+
+** Decision gate
+- ACCEPT issue-specific architecture for capsule model/view/training + local public-gateway adapter slices.
+- DEFER only the concrete =authorization.bxb= provider declaration until a real public OAuth authorize/token authority exists; record/validate required scope policy now instead of inventing endpoints.
+- Gateway/infra implementation remains blocked by issue #8.
 
 ** TDD
-- Pending tests-first capsule structural/model/training/view slice.
+- First slice :: deterministic structural/security tests before capsule files. Prove missing capsule/models/actions/endpoints/training/views fail for the expected reason, then implement the minimum coherent capsule skeleton.
+- Follow-on slices :: JS adapter bounds/config/security tests; person ambiguity/context training checks; document attribution-link and bounded-result checks; scope-least-privilege checks.
+- Exact-head CI required after every candidate merge boundary.
 
 ** Implementation
 - None yet.
