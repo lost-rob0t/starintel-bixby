@@ -1,0 +1,5 @@
+enum (PersonResolutionStatus) {
+  symbol (Matched)
+  symbol (Ambiguous)
+  symbol (NotFound)
+}
