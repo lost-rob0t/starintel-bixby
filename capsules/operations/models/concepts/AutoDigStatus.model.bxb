@@ -1,0 +1,6 @@
+structure (AutoDigStatus) {
+  description (Availability and server-advertised capabilities of the authoritative Auto-Dig control plane.)
+  property (available) { type (AutoDigAvailable) min (Required) max (One) }
+  property (capabilities) { type (AutoDigCapability) min (Optional) max (Many) }
+  property (correlationId) { type (CorrelationId) min (Required) max (One) }
+}
