@@ -1,0 +1,3 @@
+text (TargetType) {
+  description (A canonical user-facing StarIntel target type.)
+}
