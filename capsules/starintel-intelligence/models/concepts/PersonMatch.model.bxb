@@ -1,0 +1,33 @@
+structure (PersonMatch) {
+  description ("A ranked StarIntel person candidate used for explicit disambiguation")
+  property (id) {
+    type (PersonId)
+    min (Required)
+    max (One)
+    visibility (Public)
+  }
+  property (name) {
+    type (PersonName)
+    min (Required)
+    max (One)
+    visibility (Public)
+  }
+  property (aliases) {
+    type (PersonAlias)
+    min (Optional)
+    max (Many)
+    visibility (Private)
+  }
+  property (summary) {
+    type (core.Text)
+    min (Optional)
+    max (One)
+    visibility (Private)
+  }
+  property (confidence) {
+    type (core.Decimal)
+    min (Optional)
+    max (One)
+    visibility (Private)
+  }
+}
