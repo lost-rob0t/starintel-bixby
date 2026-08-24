@@ -1,0 +1,14 @@
+confirmation-view {
+  match {
+    OperationConfirmation {
+      confirming {
+        CommitAutoDigStart (action)
+      }
+    }
+  }
+  message ("Start this Auto-Dig run?")
+  mode (Transactional)
+  render {
+    nothing
+  }
+}
