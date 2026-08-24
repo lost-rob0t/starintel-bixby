@@ -1,3 +1,4 @@
+import json
 import unittest
 from pathlib import Path
 
@@ -28,6 +29,17 @@ class DualModeAuthWiringTests(unittest.TestCase):
                 self.assertNotIn("bixbyUserId", source)
                 self.assertNotIn("Authorization", source)
                 self.assertNotIn("Bearer", source)
+
+    def test_auth_manifest_preserves_guest_authority_and_declares_optional_user_boundary(self):
+        requirements = json.loads(self.read("auth.requirements.json"))
+        self.assertEqual("none", requirements["authorizationType"])
+        self.assertEqual("starintel-server#109", requirements["publicAuthority"])
+        self.assertEqual("optional-user", requirements["signedInMode"])
+        self.assertEqual("starintel-server#111", requirements["signedInAuthority"])
+        self.assertEqual(["documents:read", "search:read"], requirements["signedInScopes"])
+        self.assertFalse(requirements["forwardVivContext"])
+        self.assertFalse(requirements["manualTokenForwarding"])
+        self.assertFalse(requirements["useBixbyUserIdAsPrincipal"])
 
     def test_provider_declaration_is_not_fabricated_before_server_111(self):
         self.assertFalse(
