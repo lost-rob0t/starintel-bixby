@@ -1,0 +1,13 @@
+{
+  "status": 404,
+  "request": {
+    "query": "no matching documents",
+    "limit": 5
+  },
+  "response": {
+    "error": {
+      "code": "DOCUMENTS_NOT_FOUND",
+      "message": "No matching documents were found."
+    }
+  }
+}
