@@ -1,0 +1,3 @@
+text (OperationStatus) {
+  description (A normalized StarIntel operation status.)
+}
