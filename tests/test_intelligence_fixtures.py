@@ -21,17 +21,16 @@ class IntelligenceFixtureTests(unittest.TestCase):
         response = fixture["response"]
         self.assertEqual(1, len(response["matches"]))
         self.assertEqual(response["matches"][0]["id"], response["profile"]["id"])
-        self.assertEqual(
-            {"query", "matches", "profile"},
-            set(response),
-        )
+        self.assertEqual({"query", "matches", "profile"}, set(response))
 
-    def test_person_ambiguity_fixture_never_selects_a_profile(self):
+    def test_person_ambiguity_fixture_is_successful_candidates_without_profile(self):
         fixture = self.load("person-resolve-ambiguous.json")
-        self.assertEqual(409, fixture["status"])
-        self.assertEqual("AMBIGUOUS_PERSON", fixture["response"]["error"]["code"])
-        self.assertGreaterEqual(len(fixture["response"]["matches"]), 2)
-        self.assertNotIn("profile", fixture["response"])
+        self.assertEqual(200, fixture["status"])
+        response = fixture["response"]
+        self.assertEqual({"query", "matches"}, set(response))
+        self.assertGreaterEqual(len(response["matches"]), 2)
+        self.assertNotIn("profile", response)
+        self.assertNotIn("error", response)
 
     def test_person_not_found_fixture_uses_stable_safe_error(self):
         fixture = self.load("person-resolve-not-found.json")
