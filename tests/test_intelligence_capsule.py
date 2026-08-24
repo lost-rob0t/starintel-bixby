@@ -19,6 +19,18 @@ class IntelligenceCapsuleStructureTests(unittest.TestCase):
         self.assertIn("format (3)", text)
         self.assertIn("target (bixby-mobile-en-US)", text)
 
+    def test_capsule_pins_current_runtime_and_actions_use_js_runtime_two_exports(self):
+        capsule = self.read("capsule.bxb")
+        self.assertIn("runtime-version (9)", capsule)
+        self.assertIn("js-runtime-version (2)", capsule)
+
+        for action_path in ("code/ResolvePerson.js", "code/SearchDocuments.js"):
+            with self.subTest(action=action_path):
+                action = self.read(action_path)
+                self.assertIn("export default function", action)
+                self.assertNotIn("module.exports", action)
+                self.assertNotIn("require(", action)
+
     def test_person_contract_models_exist(self):
         required = {
             "models/primitives/PersonQuery.model.bxb": "text (PersonQuery)",
