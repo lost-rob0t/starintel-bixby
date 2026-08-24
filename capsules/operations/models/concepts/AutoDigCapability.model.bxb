@@ -1,0 +1,3 @@
+text (AutoDigCapability) {
+  description (A server-advertised Auto-Dig control capability.)
+}
