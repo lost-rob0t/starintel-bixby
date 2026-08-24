@@ -1,0 +1,7 @@
+structure (AutoDigRun) {
+  description (A normalized Auto-Dig run safe for Bixby presentation.)
+  property (runId) { type (AutoDigRunId) min (Required) max (One) }
+  property (status) { type (AutoDigRunStatus) min (Required) max (One) }
+  property (summary) { type (OperationSummary) min (Optional) max (One) }
+  property (correlationId) { type (CorrelationId) min (Required) max (One) }
+}
