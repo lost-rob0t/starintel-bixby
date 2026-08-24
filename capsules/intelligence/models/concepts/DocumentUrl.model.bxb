@@ -1,0 +1,3 @@
+text (DocumentUrl) {
+  description (A public HTTPS Quasar document URL.)
+}
