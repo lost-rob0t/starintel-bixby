@@ -4,6 +4,8 @@ const SAFE_ERROR_CODES = new Set([
   'INVALID_REQUEST',
   'TARGET_TYPE_UNSUPPORTED',
   'ACTOR_UNSUPPORTED',
+  'AUTODIG_CAPABILITY_UNAVAILABLE',
+  'AUTODIG_RUN_NOT_FOUND',
   'RATE_LIMITED',
   'UPSTREAM_TIMEOUT',
   'UPSTREAM_UNAVAILABLE',
@@ -46,15 +48,8 @@ function isPrivateIpv4(host) {
   const values = octets.map(Number)
   if (values.some(value => value < 0 || value > 255)) return true
   const [a, b] = values
-  return (
-    a === 0 ||
-    a === 10 ||
-    a === 127 ||
-    (a === 169 && b === 254) ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168) ||
-    a >= 224
-  )
+  return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || a >= 224
 }
 
 export function validateGatewayOrigin(origin) {
@@ -64,13 +59,8 @@ export function validateGatewayOrigin(origin) {
   const match = /^https:\/\/([A-Za-z0-9.-]+)(?::\d+)?\/?$/.exec(origin)
   if (!match) throw new GatewayError('INVALID_REQUEST', 'The StarIntel gateway origin is invalid.')
   const host = match[1].replace(/\.$/, '').toLowerCase()
-  if (
-    host === 'localhost' ||
-    host.endsWith('.localhost') ||
-    host === 'star.intel' ||
-    host.endsWith('.star.intel') ||
-    isPrivateIpv4(host)
-  ) {
+  if (host === 'localhost' || host.endsWith('.localhost') || host === 'star.intel' ||
+      host.endsWith('.star.intel') || isPrivateIpv4(host)) {
     throw new GatewayError('INVALID_REQUEST', 'The StarIntel gateway origin must be public HTTPS.')
   }
   return origin.endsWith('/') ? origin.slice(0, -1) : origin
@@ -93,9 +83,11 @@ function safeMessage(code) {
   switch (code) {
     case 'UNAUTHORIZED': return 'Please reconnect your StarIntel account.'
     case 'FORBIDDEN': return 'This StarIntel action is not permitted.'
-    case 'INVALID_REQUEST': return 'The target request is invalid.'
+    case 'INVALID_REQUEST': return 'The StarIntel request is invalid.'
     case 'TARGET_TYPE_UNSUPPORTED': return 'That target type is not supported.'
     case 'ACTOR_UNSUPPORTED': return 'That target actor is not supported.'
+    case 'AUTODIG_CAPABILITY_UNAVAILABLE': return 'Auto-Dig control is not available right now.'
+    case 'AUTODIG_RUN_NOT_FOUND': return 'That Auto-Dig run could not be found.'
     case 'RATE_LIMITED': return 'StarIntel is receiving too many requests.'
     case 'UPSTREAM_TIMEOUT': return 'StarIntel did not respond in time.'
     case 'UPSTREAM_UNAVAILABLE': return 'StarIntel is temporarily unavailable.'
@@ -118,14 +110,12 @@ function parse(response) {
 
 export function postAuthorized(httpClient, origin, path, body) {
   const base = validateGatewayOrigin(origin)
-  if (!/^\/v1\/bixby\/targets\/(?:prepare|commit)$/.test(path)) {
+  if (!/^\/v1\/bixby\/(?:targets\/(?:prepare|commit)|autodig\/(?:status|run|runs|start|pause|resume|stop))$/.test(path)) {
     throw new GatewayError('INVALID_REQUEST', 'The StarIntel gateway path is invalid.')
   }
   try {
     return parse(httpClient.oauthPostUrl(`${base}${path}`, body, {
-      format: 'json',
-      passAsJson: true,
-      returnHeaders: true,
+      format: 'json', passAsJson: true, returnHeaders: true,
     }))
   } catch (error) {
     if (error && error.$type === 'authorization-error') throw error
@@ -150,12 +140,36 @@ export function buildCommitRequest(draft) {
   return { draftId: requiredText(draft.draftId, 'A prepared target draft is required.') }
 }
 
-export function normalizeTargetDraft(value) {
+export function buildRunRequest(runId) {
+  return { runId: requiredText(runId, 'An Auto-Dig run is required.') }
+}
+
+export function buildStartRequest(target) {
+  return { target: requiredText(target, 'An Auto-Dig target is required.') }
+}
+
+export function normalizeAutoDigRun(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
   const result = {
-    draftId: requiredOutputText(value.draftId),
-    subject: requiredOutputText(value.subject),
+    runId: requiredOutputText(value.runId),
+    status: requiredOutputText(value.status),
   }
+  const requestId = optionalText(value.requestId)
+  const target = optionalText(value.target)
+  if (requestId) result.requestId = requestId
+  if (target) result.target = target
+  return result
+}
+
+export function normalizeAutoDigRunList(value) {
+  const runs = Array.isArray(value) ? value : (value && Array.isArray(value.runs) ? value.runs : null)
+  if (!runs) throw internalError()
+  return { runs: runs.slice(0, 20).map(normalizeAutoDigRun) }
+}
+
+export function normalizeTargetDraft(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
+  const result = { draftId: requiredOutputText(value.draftId), subject: requiredOutputText(value.subject) }
   const targetType = optionalText(value.targetType)
   const actor = optionalText(value.actor)
   if (targetType) result.targetType = targetType
@@ -165,16 +179,17 @@ export function normalizeTargetDraft(value) {
 
 export function normalizeTargetReceipt(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
-  return {
-    receiptId: requiredOutputText(value.receiptId),
-    status: requiredOutputText(value.status),
-  }
+  return { receiptId: requiredOutputText(value.receiptId), status: requiredOutputText(value.status) }
 }
 
 export default {
   GatewayError,
   buildCommitRequest,
   buildPrepareRequest,
+  buildRunRequest,
+  buildStartRequest,
+  normalizeAutoDigRun,
+  normalizeAutoDigRunList,
   normalizeTargetDraft,
   normalizeTargetReceipt,
   postAuthorized,
