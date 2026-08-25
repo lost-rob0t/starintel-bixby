@@ -85,15 +85,24 @@ class OperationsAutoDigCapsuleTests(unittest.TestCase):
             with self.subTest(utterance=utterance):
                 self.assertIn(f"[g:AutoDigRun:continue] {utterance}", training)
 
-    def test_capsule_never_mentions_internal_quasar_protocol_or_private_topology(self):
+    def test_capsule_never_exposes_internal_quasar_protocol_or_private_topology(self):
+        # gateway.js must name private host patterns so it can reject them. Treat that
+        # rejection helper as policy code, not Samsung-facing presentation/config.
+        policy_helper = CAPSULE / "code" / "lib" / "gateway.js"
         for path in CAPSULE.rglob("*"):
-            if not path.is_file():
+            if not path.is_file() or path == policy_helper:
                 continue
             text = path.read_text(errors="ignore").lower()
             self.assertNotIn("quasar.control.v1", text)
             self.assertNotIn(".star.intel", text)
             self.assertNotIn("rabbitmq", text)
             self.assertNotIn("couchdb", text)
+
+        helper = policy_helper.read_text().lower()
+        self.assertIn("host.endswith('.star.intel')", helper)
+        self.assertNotIn("quasar.control.v1", helper)
+        self.assertNotIn("rabbitmq://", helper)
+        self.assertNotIn("couchdb://", helper)
 
 
 if __name__ == "__main__":
