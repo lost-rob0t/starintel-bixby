@@ -1,0 +1,22 @@
+confirmation-view {
+  match {
+    AutoDigConfirmation {
+      confirming {
+        StartAutoDig (action)
+      }
+    }
+  }
+  modal-prompt (true)
+  message ("Start this Auto-Dig run?")
+  render {
+    layout {
+      section {
+        content {
+          paragraph {
+            value ("Target: #{value(action.target)}")
+          }
+        }
+      }
+    }
+  }
+}
