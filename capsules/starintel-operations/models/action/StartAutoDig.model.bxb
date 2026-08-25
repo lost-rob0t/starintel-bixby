@@ -1,0 +1,15 @@
+action (StartAutoDig) {
+  description (Start a durable Auto-Dig run after explicit user confirmation.)
+  type (Commit)
+  confirm {
+    by (AutoDigConfirmation)
+  }
+  collect {
+    input (target) {
+      type (TargetSubject)
+      min (Required)
+      max (One)
+    }
+  }
+  output (AutoDigRun)
+}
