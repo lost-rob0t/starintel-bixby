@@ -18,6 +18,10 @@ export class GatewayError extends Error {
   }
 }
 
+function internalError() {
+  return new GatewayError('INTERNAL_ERROR', 'StarIntel returned an invalid response.')
+}
+
 function optionalText(value) {
   if (value === undefined || value === null) return undefined
   const text = String(value).trim()
@@ -30,15 +34,46 @@ function requiredText(value, message) {
   return text
 }
 
-function validateOrigin(origin) {
-  if (typeof origin !== 'string' || !/^https:\/\/[A-Za-z0-9.-]+(?::\d+)?$/.test(origin)) {
+function requiredOutputText(value) {
+  const text = optionalText(value)
+  if (!text) throw internalError()
+  return text
+}
+
+function isPrivateIpv4(host) {
+  const octets = host.split('.')
+  if (octets.length !== 4 || octets.some(part => !/^\d{1,3}$/.test(part))) return false
+  const values = octets.map(Number)
+  if (values.some(value => value < 0 || value > 255)) return true
+  const [a, b] = values
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    a >= 224
+  )
+}
+
+export function validateGatewayOrigin(origin) {
+  if (typeof origin !== 'string' || !origin.trim() || origin !== origin.trim()) {
     throw new GatewayError('INVALID_REQUEST', 'The StarIntel gateway origin is invalid.')
   }
-  const host = origin.replace(/^https:\/\//, '').split(':')[0].toLowerCase()
-  if (host === 'localhost' || host.endsWith('.localhost') || host === 'star.intel' || host.endsWith('.star.intel')) {
+  const match = /^https:\/\/([A-Za-z0-9.-]+)(?::\d+)?\/?$/.exec(origin)
+  if (!match) throw new GatewayError('INVALID_REQUEST', 'The StarIntel gateway origin is invalid.')
+  const host = match[1].replace(/\.$/, '').toLowerCase()
+  if (
+    host === 'localhost' ||
+    host.endsWith('.localhost') ||
+    host === 'star.intel' ||
+    host.endsWith('.star.intel') ||
+    isPrivateIpv4(host)
+  ) {
     throw new GatewayError('INVALID_REQUEST', 'The StarIntel gateway origin must be public HTTPS.')
   }
-  return origin
+  return origin.endsWith('/') ? origin.slice(0, -1) : origin
 }
 
 function safeCode(status, parsed) {
@@ -82,7 +117,7 @@ function parse(response) {
 }
 
 export function postAuthorized(httpClient, origin, path, body) {
-  const base = validateOrigin(origin)
+  const base = validateGatewayOrigin(origin)
   if (!/^\/v1\/bixby\/targets\/(?:prepare|commit)$/.test(path)) {
     throw new GatewayError('INVALID_REQUEST', 'The StarIntel gateway path is invalid.')
   }
@@ -115,9 +150,33 @@ export function buildCommitRequest(draft) {
   return { draftId: requiredText(draft.draftId, 'A prepared target draft is required.') }
 }
 
+export function normalizeTargetDraft(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
+  const result = {
+    draftId: requiredOutputText(value.draftId),
+    subject: requiredOutputText(value.subject),
+  }
+  const targetType = optionalText(value.targetType)
+  const actor = optionalText(value.actor)
+  if (targetType) result.targetType = targetType
+  if (actor) result.actor = actor
+  return result
+}
+
+export function normalizeTargetReceipt(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw internalError()
+  return {
+    receiptId: requiredOutputText(value.receiptId),
+    status: requiredOutputText(value.status),
+  }
+}
+
 export default {
   GatewayError,
   buildCommitRequest,
   buildPrepareRequest,
+  normalizeTargetDraft,
+  normalizeTargetReceipt,
   postAuthorized,
+  validateGatewayOrigin,
 }
