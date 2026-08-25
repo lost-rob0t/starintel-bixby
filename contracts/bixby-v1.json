@@ -1,0 +1,22 @@
+{
+  "version": "v1",
+  "basePath": "/v1/bixby",
+  "routes": [
+    {"path":"/v1/bixby/person/resolve","method":"POST","authorization":"optional-user","scopes":["starintel.read"]},
+    {"path":"/v1/bixby/documents/search","method":"POST","authorization":"optional-user","scopes":["starintel.search"]},
+    {"path":"/v1/bixby/targets/prepare","method":"POST","authorization":"required-user","scopes":["starintel.targets.write"],"confirmationRequired":false},
+    {"path":"/v1/bixby/targets/commit","method":"POST","authorization":"required-user","scopes":["starintel.targets.write"],"confirmationRequired":true},
+    {"path":"/v1/bixby/autodig/status","method":"POST","authorization":"required-user","scopes":["starintel.autodig.read"],"confirmationRequired":false},
+    {"path":"/v1/bixby/autodig/run","method":"POST","authorization":"required-user","scopes":["starintel.autodig.read"],"confirmationRequired":false},
+    {"path":"/v1/bixby/autodig/runs","method":"POST","authorization":"required-user","scopes":["starintel.autodig.read"],"confirmationRequired":false},
+    {"path":"/v1/bixby/autodig/start","method":"POST","authorization":"required-user","scopes":["starintel.autodig.control"],"confirmationRequired":true},
+    {"path":"/v1/bixby/autodig/pause","method":"POST","authorization":"required-user","scopes":["starintel.autodig.control"],"confirmationRequired":true},
+    {"path":"/v1/bixby/autodig/resume","method":"POST","authorization":"required-user","scopes":["starintel.autodig.control"],"confirmationRequired":true},
+    {"path":"/v1/bixby/autodig/stop","method":"POST","authorization":"required-user","scopes":["starintel.autodig.control"],"confirmationRequired":true}
+  ],
+  "errors": [
+    "UNAUTHORIZED","FORBIDDEN","INVALID_REQUEST","PERSON_NOT_FOUND","AMBIGUOUS_PERSON","DOCUMENTS_NOT_FOUND","TARGET_TYPE_UNSUPPORTED","ACTOR_UNSUPPORTED","AUTODIG_CAPABILITY_UNAVAILABLE","AUTODIG_RUN_NOT_FOUND","RATE_LIMITED","UPSTREAM_TIMEOUT","UPSTREAM_UNAVAILABLE","INTERNAL_ERROR"
+  ],
+  "limits": {"documentResultsDefault":5,"documentResultsMax":20,"autoDigRunResultsMax":20},
+  "privacy": {"internalTopology":false,"rawBackendObjects":false,"ambientSamsungContext":false}
+}
