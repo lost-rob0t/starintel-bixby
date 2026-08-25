@@ -1,0 +1,3 @@
+text (AutoDigRunId) {
+  description (Opaque durable Auto-Dig run identifier returned by StarIntel.)
+}

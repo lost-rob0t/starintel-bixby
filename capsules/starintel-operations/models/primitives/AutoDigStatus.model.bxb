@@ -1,0 +1,3 @@
+text (AutoDigStatus) {
+  description (Client-safe Auto-Dig lifecycle status.)
+}

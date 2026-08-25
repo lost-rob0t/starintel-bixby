@@ -1,0 +1,3 @@
+text (AutoDigRequestId) {
+  description (Stable idempotency identifier for one Auto-Dig start request.)
+}

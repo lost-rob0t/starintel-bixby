@@ -1,0 +1,4 @@
+action (ListAutoDigRuns) {
+  description (List recent Auto-Dig runs for this StarIntel workspace.)
+  output (AutoDigRunList)
+}

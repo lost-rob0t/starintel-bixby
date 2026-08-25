@@ -1,0 +1,15 @@
+action (ResumeAutoDig) {
+  description (Resume a paused durable Auto-Dig run after explicit user confirmation.)
+  type (Commit)
+  confirm {
+    by (AutoDigConfirmation)
+  }
+  collect {
+    input (runId) {
+      type (AutoDigRunId)
+      min (Required)
+      max (One)
+    }
+  }
+  output (AutoDigRun)
+}

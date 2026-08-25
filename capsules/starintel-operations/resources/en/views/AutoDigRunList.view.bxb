@@ -1,0 +1,21 @@
+result-view {
+  match {
+    AutoDigRunList (runList)
+  }
+  message ("Here are the recent Auto-Dig runs.")
+  render {
+    list-of (runList.runs) {
+      where-each (run) {
+        title-card {
+          title-area {
+            slot1 {
+              text {
+                value ("#{value(run.status)} — #{value(run.runId)}")
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

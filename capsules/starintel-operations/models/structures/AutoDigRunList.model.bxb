@@ -1,0 +1,7 @@
+structure (AutoDigRunList) {
+  property (runs) {
+    type (AutoDigRun)
+    min (Optional)
+    max (Many)
+  }
+}

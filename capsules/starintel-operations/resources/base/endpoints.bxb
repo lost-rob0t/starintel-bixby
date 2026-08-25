@@ -8,5 +8,31 @@ endpoints {
       accepted-inputs (draft)
       local-endpoint (CommitTarget.js)
     }
+    action-endpoint (GetAutoDigStatus) {
+      local-endpoint (GetAutoDigStatus.js)
+    }
+    action-endpoint (GetAutoDigRun) {
+      accepted-inputs (runId)
+      local-endpoint (GetAutoDigRun.js)
+    }
+    action-endpoint (ListAutoDigRuns) {
+      local-endpoint (ListAutoDigRuns.js)
+    }
+    action-endpoint (StartAutoDig) {
+      accepted-inputs (target)
+      local-endpoint (StartAutoDig.js)
+    }
+    action-endpoint (PauseAutoDig) {
+      accepted-inputs (runId)
+      local-endpoint (PauseAutoDig.js)
+    }
+    action-endpoint (ResumeAutoDig) {
+      accepted-inputs (runId)
+      local-endpoint (ResumeAutoDig.js)
+    }
+    action-endpoint (StopAutoDig) {
+      accepted-inputs (runId)
+      local-endpoint (StopAutoDig.js)
+    }
   }
 }

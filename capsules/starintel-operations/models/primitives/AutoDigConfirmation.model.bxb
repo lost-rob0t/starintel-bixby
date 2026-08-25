@@ -1,0 +1,3 @@
+boolean (AutoDigConfirmation) {
+  extends (core.Confirmation)
+}

@@ -1,0 +1,22 @@
+confirmation-view {
+  match {
+    AutoDigConfirmation {
+      confirming {
+        StopAutoDig (action)
+      }
+    }
+  }
+  modal-prompt (true)
+  message ("Stop this Auto-Dig run?")
+  render {
+    layout {
+      section {
+        content {
+          paragraph {
+            value ("Run: #{value(action.runId)}")
+          }
+        }
+      }
+    }
+  }
+}

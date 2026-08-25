@@ -88,14 +88,21 @@ class OperationsTargetCapsuleTests(unittest.TestCase):
         self.assertIn("/v1/bixby/targets/prepare", prepare)
         self.assertIn("/v1/bixby/targets/commit", commit)
 
-    def test_operations_target_authority_is_oauth_user_delegated_and_scope_limited(self):
+    def test_operations_authority_is_user_delegated_and_scope_separated(self):
         requirements = json.loads(self.read("auth.requirements.json"))
         self.assertEqual("oauth2-authorization-code", requirements["authorizationType"])
         self.assertEqual("user", requirements["principalMode"])
-        self.assertEqual(["starintel.targets.write"], requirements["requiredScopes"])
+        self.assertEqual(
+            [
+                "starintel.targets.write",
+                "starintel.autodig.read",
+                "starintel.autodig.control",
+            ],
+            requirements["requiredScopes"],
+        )
         self.assertFalse(requirements["forwardVivContext"])
         serialized = json.dumps(requirements).lower()
-        for forbidden in ("client_secret", "client-secret-value", "admin", "rabbitmq", "autodig.control"):
+        for forbidden in ("client_secret", "client-secret-value", "admin", "rabbitmq"):
             self.assertNotIn(forbidden, serialized)
 
     def test_training_covers_generic_and_actor_qualified_target_requests(self):
@@ -107,14 +114,22 @@ class OperationsTargetCapsuleTests(unittest.TestCase):
         ):
             self.assertIn(phrase, training)
 
-    def test_capsule_does_not_claim_autodig_until_quasar_lifecycle_exists(self):
+    def test_autodig_capsule_contract_never_becomes_runtime_authority(self):
         paths = [p for p in CAPSULE.glob("**/*") if p.is_file()]
         serialized = "\n".join(p.read_text(encoding="utf-8", errors="ignore") for p in paths).lower()
-        self.assertNotIn("startautodig", serialized)
-        self.assertNotIn("pauseautodig", serialized)
-        self.assertNotIn("resumeautodig", serialized)
-        self.assertNotIn("stopautodig", serialized)
-        self.assertNotIn("autodig.control", serialized)
+        for action in ("startautodig", "pauseautodig", "resumeautodig", "stopautodig"):
+            self.assertIn(action, serialized)
+        self.assertIn("autodig_capability_unavailable", serialized)
+        for forbidden in (
+            "quasar.control.v1",
+            "workerid",
+            "leaseid",
+            "routing_key",
+            "routing-key",
+            "rabbitmq",
+            "couchdb",
+        ):
+            self.assertNotIn(forbidden, serialized)
 
 
 if __name__ == "__main__":
