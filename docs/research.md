@@ -2,6 +2,19 @@
 
 Status: Phase 0 evidence for issue #4, with issue #11 dual-mode authentication/provider re-check. This document records current official Samsung/Bixby behavior and current StarIntel/Quasar/infra authority boundaries. It is not evidence of Simulator, private-submission, Developer Center, or on-device execution.
 
+## 2026-08-25 official Samsung revalidation
+
+The current official Bixby Developer Center documentation was rechecked before further capsule work. The core platform assumptions used by this repository remain valid:
+
+- `authorization.bxb` remains a root-level capsule declaration. User OAuth still uses `oauth2-authorization-code` with `authorize-endpoint`, `client-id`, `client-secret-key`, optional `scope`, and `token-endpoint`. `client-secret-key` is the name of a secret stored in Developer Center Configuration & Secrets, not the secret value committed to capsule source: https://corp.bixbydevelopers.com/dev/docs/reference/type/authorization
+- Bixby Developer Studio still creates capsule projects with `capsule.bxb` plus `endpoints.bxb`; `endpoints.bxb` continues to map actions to local or remote endpoints: https://corp.bixbydevelopers.com/dev/docs/get-started/quick-start
+- Remote action endpoints remain supported with explicit HTTP methods: https://corp.bixbydevelopers.com/dev/docs/reference/type/endpoints.action-endpoints.action-endpoint.remote-endpoint
+- Explicit action confirmation remains current. Samsung documents `type (Commit)` actions using `confirm { by (...) }` and a matching `confirmation-view`, which remains the correct primitive for StarIntel target and Auto-Dig mutations: https://bixbydevelopers.com/dev/docs/dev-guide/design-guides/writing.tone-style and https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/handling-nl.guiding-conversations
+- Samsung continues to caution against unconditional app punch-out and recommends attribution links where appropriate; StarIntel document results should therefore remain user-selected links rather than automatically launching a browser: https://corp.bixbydevelopers.com/dev/docs/reference/type/result-view.app-launch
+- Developer Studio remains online-dependent and is still the supported environment for capsule development/testing. This revalidation is documentation evidence only; it does not claim Simulator, private submission, Developer Center registration, or Galaxy-device execution: https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/ide
+
+No current official evidence found in this recheck requires changing the two-capsule authority split, dual-mode Intelligence OAuth design, confirmation boundary, local JavaScript adapter strategy, or capsule-first contract-freeze order.
+
 ## Samsung/Bixby — current official findings
 
 Research date: 2026-08-24.
