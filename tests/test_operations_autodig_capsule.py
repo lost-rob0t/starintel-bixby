@@ -86,9 +86,9 @@ class OperationsAutoDigCapsuleTests(unittest.TestCase):
                 self.assertIn(f"[g:AutoDigRun:continue] {utterance}", training)
 
     def test_capsule_never_exposes_internal_quasar_protocol_or_private_topology(self):
-        # gateway.js must name private host patterns so it can reject them. Treat that
-        # rejection helper as policy code, not Samsung-facing presentation/config.
-        policy_helper = Path("code/lib/gateway.js")
+        # OperationGateway.js must name private host patterns so it can reject them.
+        # Treat that rejection helper as policy code, not Samsung-facing presentation/config.
+        policy_helper = Path("code/lib/OperationGateway.js")
         for path in CAPSULE.rglob("*"):
             if not path.is_file():
                 continue
