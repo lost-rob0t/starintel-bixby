@@ -1,0 +1,10 @@
+[g:AutoDigRun] start auto dig on (John Smith)[v:TargetSubject]
+[g:AutoDigRunList] what is auto dig doing
+[g:AutoDigRunList] show recent auto dig runs
+[g:AutoDigRun] what is this run doing
+[g:AutoDigRun] pause auto dig run (run-123)[v:AutoDigRunId]
+[g:AutoDigRun] resume auto dig run (run-123)[v:AutoDigRunId]
+[g:AutoDigRun] stop auto dig run (run-123)[v:AutoDigRunId]
+[g:AutoDigRun] pause auto dig (run-123)[v:AutoDigRunId]
+[g:AutoDigRun] resume auto dig (run-123)[v:AutoDigRunId]
+[g:AutoDigRun] stop auto dig (run-123)[v:AutoDigRunId]
