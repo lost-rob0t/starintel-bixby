@@ -5,6 +5,10 @@ import {
   GatewayError,
   buildCommitRequest,
   buildPrepareRequest,
+  buildRunRequest,
+  buildStartRequest,
+  normalizeAutoDigRun,
+  normalizeAutoDigRunList,
   normalizeTargetDraft,
   normalizeTargetReceipt,
   postAuthorized,
@@ -80,6 +84,43 @@ test('target receipt normalization strips internal acceptance and transport fiel
   })
 })
 
+test('Auto-Dig request builders accept only target or durable run identity', () => {
+  assert.deepEqual(buildStartRequest('  John Smith  '), { target: 'John Smith' })
+  assert.deepEqual(buildRunRequest(' run-42 '), { runId: 'run-42' })
+  assert.throws(() => buildStartRequest(''), GatewayError)
+  assert.throws(() => buildRunRequest(''), GatewayError)
+})
+
+test('Auto-Dig normalization strips workspace and worker lease internals', () => {
+  assert.deepEqual(normalizeAutoDigRun({
+    runId: 'run-42',
+    requestId: 'request-42',
+    target: 'John Smith',
+    status: 'active',
+    workspaceId: 'private-workspace',
+    workerId: 'private-worker',
+    leaseId: 'private-lease',
+    heartbeatAt: 1234,
+    outcome: { internal: true },
+  }), {
+    runId: 'run-42',
+    requestId: 'request-42',
+    target: 'John Smith',
+    status: 'active',
+  })
+})
+
+test('Auto-Dig run lists are bounded and normalized item by item', () => {
+  const runs = Array.from({ length: 25 }, (_, index) => ({
+    runId: `run-${index}`,
+    status: 'queued',
+    workerId: `worker-${index}`,
+  }))
+  const normalized = normalizeAutoDigRunList({ runs })
+  assert.equal(normalized.runs.length, 20)
+  assert.deepEqual(normalized.runs[0], { runId: 'run-0', status: 'queued' })
+})
+
 test('authorized transport uses oauthPostUrl only', () => {
   const calls = []
   const http = {
@@ -102,6 +143,55 @@ test('authorized transport uses oauthPostUrl only', () => {
   assert.deepEqual(result, { draftId: 'draft-42', subject: 'John Smith' })
   assert.equal(calls.length, 1)
   assert.equal(calls[0].method, 'oauthPostUrl')
+})
+
+test('Auto-Dig public routes use authorized transport and arbitrary routes fail closed', () => {
+  const calls = []
+  const http = {
+    oauthPostUrl(url, body) {
+      calls.push({ url, body })
+      return { status: 200, parsed: { runId: 'run-42', status: 'queued' } }
+    },
+  }
+  assert.deepEqual(
+    postAuthorized(http, 'https://gateway.example', '/v1/bixby/autodig/start', { target: 'John Smith' }),
+    { runId: 'run-42', status: 'queued' },
+  )
+  assert.equal(calls.length, 1)
+  assert.throws(
+    () => postAuthorized(http, 'https://gateway.example', '/v1/bixby/autodig/admin', {}),
+    error => error instanceof GatewayError && error.code === 'INVALID_REQUEST',
+  )
+})
+
+test('Auto-Dig capability and run errors remain stable and hide upstream details', () => {
+  const capabilityMissing = {
+    oauthPostUrl() {
+      return {
+        status: 503,
+        parsed: { error: { code: 'AUTODIG_CAPABILITY_UNAVAILABLE', message: 'private Quasar detail' } },
+      }
+    },
+  }
+  assert.throws(
+    () => postAuthorized(capabilityMissing, 'https://gateway.example', '/v1/bixby/autodig/status', {}),
+    error => error instanceof GatewayError &&
+      error.code === 'AUTODIG_CAPABILITY_UNAVAILABLE' &&
+      !error.message.includes('private Quasar detail'),
+  )
+
+  const missingRun = {
+    oauthPostUrl() {
+      return {
+        status: 404,
+        parsed: { error: { code: 'AUTODIG_RUN_NOT_FOUND', message: 'workspace private' } },
+      }
+    },
+  }
+  assert.throws(
+    () => postAuthorized(missingRun, 'https://gateway.example', '/v1/bixby/autodig/run', { runId: 'run-x' }),
+    error => error instanceof GatewayError && error.code === 'AUTODIG_RUN_NOT_FOUND' && !error.message.includes('workspace private'),
+  )
 })
 
 test('401 becomes Bixby authorization-error and unknown upstream details are not reflected', () => {
