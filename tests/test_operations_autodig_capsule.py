@@ -34,7 +34,7 @@ def test_autodig_actions_exist_and_use_bounded_public_contract():
     for action, route in expected.items():
         assert (CAPSULE / f"models/action/{action}.model.bxb").exists()
         assert (CAPSULE / f"code/{action}.js").exists()
-        assert f"accepted-inputs ({action})" in endpoints
+        assert f"action-endpoint ({action})" in endpoints
         assert route in read(f"code/{action}.js")
 
 
