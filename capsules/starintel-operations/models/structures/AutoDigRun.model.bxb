@@ -1,0 +1,22 @@
+structure (AutoDigRun) {
+  property (runId) {
+    type (AutoDigRunId)
+    min (Required)
+    max (One)
+  }
+  property (requestId) {
+    type (AutoDigRequestId)
+    min (Optional)
+    max (One)
+  }
+  property (target) {
+    type (TargetSubject)
+    min (Optional)
+    max (One)
+  }
+  property (status) {
+    type (AutoDigStatus)
+    min (Required)
+    max (One)
+  }
+}
