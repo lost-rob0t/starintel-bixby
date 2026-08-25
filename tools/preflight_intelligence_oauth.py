@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify the public StarIntel OAuth surface before finalizing Bixby registration.
 
-The probe is intentionally credential-free.  It verifies that the two OAuth
+The probe is intentionally credential-free. It verifies that the two OAuth
 protocol paths are reachable while the dedicated host rejects unrelated paths.
 It never authenticates a user, registers a client, or mutates StarIntel state.
 """
@@ -9,12 +9,12 @@ It never authenticates a user, registers a client, or mutates StarIntel state.
 from __future__ import annotations
 
 import argparse
-import dataclasses
 import importlib.util
 import pathlib
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
+from typing import NamedTuple
 
 
 _TOOL_DIR = pathlib.Path(__file__).resolve().parent
@@ -30,14 +30,12 @@ def _load_renderer():
     return module
 
 
-@dataclasses.dataclass(frozen=True)
-class ProbeResult:
+class ProbeResult(NamedTuple):
     status: int
     body: bytes = b""
 
 
-@dataclasses.dataclass(frozen=True)
-class PreflightReport:
+class PreflightReport(NamedTuple):
     ok: bool
     origin: str
     authorize_status: int | None = None
@@ -58,14 +56,14 @@ _UNAPPROVED_PATH = "/api/v1/search"
 
 
 def _request(method: str, url: str, *, headers: Mapping[str, str], timeout: int, body: bytes) -> ProbeResult:
-    request = urllib.request.Request(
+    outbound = urllib.request.Request(
         url,
         data=body if method == "POST" else None,
         headers=dict(headers),
         method=method,
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with urllib.request.urlopen(outbound, timeout=timeout) as response:
             return ProbeResult(response.status, response.read(512))
     except urllib.error.HTTPError as exc:
         return ProbeResult(exc.code, exc.read(512))
