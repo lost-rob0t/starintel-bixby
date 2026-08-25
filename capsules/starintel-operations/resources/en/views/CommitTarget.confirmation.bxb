@@ -1,0 +1,32 @@
+confirmation-view {
+  match {
+    TargetConfirmation {
+      confirming {
+        CommitTarget (action)
+      }
+    }
+  }
+  modal-prompt (true)
+  message ("Create this StarIntel target?")
+  render {
+    layout {
+      section {
+        content {
+          paragraph {
+            value ("Target: #{value(action.draft.subject)}")
+          }
+          if (exists(action.draft.targetType)) {
+            paragraph {
+              value ("Type: #{value(action.draft.targetType)}")
+            }
+          }
+          if (exists(action.draft.actor)) {
+            paragraph {
+              value ("Actor: #{value(action.draft.actor)}")
+            }
+          }
+        }
+      }
+    }
+  }
+}

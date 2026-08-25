@@ -1,0 +1,5 @@
+[g:TargetDraft] Create a target for (John Smith)[v:TargetSubject]
+[g:TargetDraft] Create a (person)[v:TargetType] target for (John Smith)[v:TargetSubject]
+[g:TargetDraft] Have (BBPD)[v:TargetActor] target (John Smith)[v:TargetSubject]
+[g:TargetDraft] Prepare a target for (Jane Doe)[v:TargetSubject]
+[g:TargetDraft] Ask (BBPD)[v:TargetActor] to target (Jane Doe)[v:TargetSubject]

@@ -1,0 +1,3 @@
+name (TargetActor) {
+  description (A user-facing actor name resolved by the gateway against canonical StarIntel actor metadata.)
+}

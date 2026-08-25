@@ -1,0 +1,3 @@
+name (TargetSubject) {
+  description (A user-facing subject to resolve into a canonical StarIntel target.)
+}

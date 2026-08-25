@@ -1,0 +1,12 @@
+structure (TargetReceipt) {
+  property (receiptId) {
+    type (TargetReceiptId)
+    min (Required)
+    max (One)
+  }
+  property (status) {
+    type (TargetStatus)
+    min (Required)
+    max (One)
+  }
+}

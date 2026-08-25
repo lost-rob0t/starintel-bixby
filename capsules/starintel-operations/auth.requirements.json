@@ -1,0 +1,9 @@
+{
+  "authorizationType": "oauth2-authorization-code",
+  "principalMode": "user",
+  "requiredScopes": ["starintel.targets.write"],
+  "forwardVivContext": false,
+  "credentialOwner": "Samsung Developer Center Configuration & Secrets",
+  "upstreamAuthority": "StarIntel human principal",
+  "notes": "Target mutation authority only. Auto-Dig scopes are intentionally absent until the owning Quasar lifecycle is available."
+}

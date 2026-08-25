@@ -1,0 +1,3 @@
+boolean (TargetConfirmation) {
+  extends (core.Confirmation)
+}

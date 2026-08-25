@@ -1,0 +1,3 @@
+text (TargetReceiptId) {
+  description (Opaque target receipt identifier returned by StarIntel.)
+}
