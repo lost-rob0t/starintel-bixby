@@ -1,0 +1,3 @@
+text (TargetType) {
+  description (A user-facing canonical target type name.)
+}

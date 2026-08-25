@@ -1,0 +1,22 @@
+action (PrepareTarget) {
+  description (Resolve a user-facing target request into a canonical StarIntel target draft without mutating state.)
+  type (Calculation)
+  collect {
+    input (subject) {
+      type (TargetSubject)
+      min (Required)
+      max (One)
+    }
+    input (targetType) {
+      type (TargetType)
+      min (Optional)
+      max (One)
+    }
+    input (actor) {
+      type (TargetActor)
+      min (Optional)
+      max (One)
+    }
+  }
+  output (TargetDraft)
+}

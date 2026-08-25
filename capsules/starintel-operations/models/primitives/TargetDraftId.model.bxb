@@ -1,0 +1,3 @@
+text (TargetDraftId) {
+  description (Opaque target draft identifier returned by StarIntel.)
+}

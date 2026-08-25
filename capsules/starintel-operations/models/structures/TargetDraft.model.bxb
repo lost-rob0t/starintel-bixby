@@ -1,0 +1,22 @@
+structure (TargetDraft) {
+  property (draftId) {
+    type (TargetDraftId)
+    min (Required)
+    max (One)
+  }
+  property (subject) {
+    type (TargetSubject)
+    min (Required)
+    max (One)
+  }
+  property (targetType) {
+    type (TargetType)
+    min (Optional)
+    max (One)
+  }
+  property (actor) {
+    type (TargetActor)
+    min (Optional)
+    max (One)
+  }
+}

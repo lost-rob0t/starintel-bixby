@@ -1,0 +1,12 @@
+endpoints {
+  action-endpoints {
+    action-endpoint (PrepareTarget) {
+      accepted-inputs (subject, targetType, actor)
+      local-endpoint (PrepareTarget.js)
+    }
+    action-endpoint (CommitTarget) {
+      accepted-inputs (draft)
+      local-endpoint (CommitTarget.js)
+    }
+  }
+}
