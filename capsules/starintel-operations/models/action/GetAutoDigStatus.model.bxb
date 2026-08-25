@@ -1,0 +1,4 @@
+action (GetAutoDigStatus) {
+  description (Get the current Auto-Dig status for this StarIntel workspace.)
+  output (AutoDigRunList)
+}
