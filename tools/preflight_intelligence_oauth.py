@@ -53,6 +53,13 @@ _HEADERS: Mapping[str, str] = {
 }
 _TIMEOUT_SECONDS = 5
 _UNAPPROVED_PATH = "/api/v1/search"
+_DNS_FAILURE_MARKERS = (
+    "name or service not known",
+    "temporary failure in name resolution",
+    "nodename nor servname provided",
+    "no address associated with hostname",
+    "getaddrinfo failed",
+)
 
 
 def _request(method: str, url: str, *, headers: Mapping[str, str], timeout: int, body: bytes) -> ProbeResult:
@@ -68,11 +75,20 @@ def _request(method: str, url: str, *, headers: Mapping[str, str], timeout: int,
     except urllib.error.HTTPError as exc:
         return ProbeResult(exc.code, exc.read(512))
     except urllib.error.URLError as exc:
-        raise OSError("public OAuth endpoint is unreachable") from exc
+        reason = getattr(exc, "reason", exc)
+        raise OSError(str(reason)) from exc
 
 
 def _surface_exists(status: int) -> bool:
     return 200 <= status < 500 and status != 404
+
+
+def _reachability_failure(exc: OSError) -> tuple[str, str]:
+    """Map transport failures to stable, non-sensitive operator diagnostics."""
+    detail = str(exc).lower()
+    if any(marker in detail for marker in _DNS_FAILURE_MARKERS):
+        return "DNS_UNRESOLVED", "public OAuth hostname does not resolve"
+    return "UNREACHABLE", "public OAuth origin is not reachable over HTTPS"
 
 
 def preflight(oauth_origin: str, *, request: Request = _request) -> PreflightReport:
@@ -97,13 +113,14 @@ def preflight(oauth_origin: str, *, request: Request = _request) -> PreflightRep
                 body=b"",
             )
             statuses[field] = result.status
-    except OSError:
+    except OSError as exc:
+        error_code, public_message = _reachability_failure(exc)
         return PreflightReport(
             ok=False,
             origin=origin,
             **statuses,
-            error_code="UNREACHABLE",
-            public_message="public OAuth origin is not reachable over HTTPS",
+            error_code=error_code,
+            public_message=public_message,
         )
 
     if not _surface_exists(statuses["authorize_status"]) or not _surface_exists(statuses["token_status"]):

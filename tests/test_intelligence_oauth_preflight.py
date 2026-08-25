@@ -38,16 +38,29 @@ class IntelligenceOauthPreflightTests(unittest.TestCase):
         self.assertEqual(404, report.root_status)
         self.assertEqual(404, report.unapproved_status)
 
-    def test_fails_closed_when_dns_or_tls_connection_fails(self):
+    def test_reports_dns_failure_without_leaking_resolver_details(self):
         tool = load_tool()
 
         def fail_request(_method, _url, **_kwargs):
-            raise OSError("name or service not known")
+            raise OSError("Name or service not known: resolver-internal.example")
+
+        report = tool.preflight("https://oauth.starintel.actor", request=fail_request)
+        self.assertFalse(report.ok)
+        self.assertEqual("DNS_UNRESOLVED", report.error_code)
+        self.assertEqual("public OAuth hostname does not resolve", report.public_message)
+        self.assertNotIn("resolver-internal", report.public_message)
+
+    def test_fails_closed_on_unknown_network_error_without_leaking_details(self):
+        tool = load_tool()
+
+        def fail_request(_method, _url, **_kwargs):
+            raise OSError("opaque transport failure from internal adapter")
 
         report = tool.preflight("https://oauth.starintel.actor", request=fail_request)
         self.assertFalse(report.ok)
         self.assertEqual("UNREACHABLE", report.error_code)
-        self.assertNotIn("name or service not known", report.public_message)
+        self.assertEqual("public OAuth origin is not reachable over HTTPS", report.public_message)
+        self.assertNotIn("internal adapter", report.public_message)
 
     def test_rejects_unapproved_route_exposure_even_if_oauth_routes_work(self):
         tool = load_tool()
