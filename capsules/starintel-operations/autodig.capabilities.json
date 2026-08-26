@@ -1,0 +1,14 @@
+{
+  "source": "backend-capability-discovery",
+  "defaultAvailable": false,
+  "operations": {
+    "status": false,
+    "getRun": false,
+    "listRuns": false,
+    "start": false,
+    "pause": false,
+    "resume": false,
+    "stop": false
+  },
+  "unavailableError": "AUTODIG_CAPABILITY_UNAVAILABLE"
+}
