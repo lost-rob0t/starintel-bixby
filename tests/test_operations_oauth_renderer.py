@@ -23,7 +23,8 @@ class OperationsOauthRendererTests(unittest.TestCase):
             "https://oauth.starintel.actor", "ops-client-1", "starintel_operations_oauth"
         )
         self.assertIn("oauth2-authorization-code (StarIntel)", rendered)
-        self.assertIn("scope (starintel.targets.write starintel.autodig.read starintel.autodig.control)", rendered)
+        self.assertIn("scope (targets:dispatch starintel.autodig.read starintel.autodig.control)", rendered)
+        self.assertNotIn("starintel.targets.write", rendered)
         self.assertNotIn("client-secret (", rendered.lower())
         self.assertNotIn("documents:read", rendered)
         self.assertNotIn("search:read", rendered)
