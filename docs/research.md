@@ -17,8 +17,9 @@ Primary official sources:
 - User-context sample / private submission namespace note: https://corp.bixbydevelopers.com/dev/docs/sample-capsules/samples/user-context
 - Release testing requirements: https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/deploying.prep-marketplace
 - Samsung Bixby landing page: https://developer.samsung.com/bixby
+- Samsung Automation Studio current notice: https://sasm.developer.samsung.com/html/fragment/start.html
 
-Samsung's Automation Studio pages still describe Bixby remote endpoints, but Automation Studio's prebuilt Capsule/Capsule Node path is not the StarIntel architecture. StarIntel uses real capsules and a normal remote endpoint owned by StarIntel infrastructure.
+Samsung's Automation Studio pages still describe Bixby integration, but the current Automation Studio site explicitly states that the old **Bixby Capsule Node does not support connection with the latest version of the Bixby app**. That shortcut is therefore both architecturally wrong for StarIntel and currently unsuitable as a compatibility path. StarIntel uses real capsules and a normal remote endpoint owned by StarIntel infrastructure.
 
 ### Capsule shape
 
@@ -69,7 +70,7 @@ Voice-facing target actor/type concepts are presentation inputs only. They must 
 
 The typed/versioned lifecycle owner is Quasar `quasar.control.v1`.
 
-Current Quasar main now contains the durable lifecycle from merged PR #43:
+Current Quasar main contains the durable lifecycle from merged PR #43:
 
 - `autodig.status`
 - `autodig.run.get`
@@ -79,9 +80,11 @@ Current Quasar main now contains the durable lifecycle from merged PR #43:
 - `autodig.run.resume`
 - `autodig.run.stop`
 
-Merged PR #51 (`3acef088009137a737647b79c404dde615b96c1d`) additionally adds a generic delegated-human Auto-Dig session model: canonical `starintel.autodig.read` maps only to status/get/list; `starintel.autodig.control` adds start/pause/resume/stop; worker-only authority stays separate; run visibility/control is isolated by the server-authenticated human principal even inside one workspace.
+Merged PR #51 (`3acef088009137a737647b79c404dde615b96c1d`) adds a generic delegated-human Auto-Dig session model: canonical `starintel.autodig.read` maps only to status/get/list; `starintel.autodig.control` adds start/pause/resume/stop; worker-only authority stays separate; run visibility/control is isolated by the server-authenticated human principal even inside one workspace.
 
-A post-merge transport audit found one remaining P0 owner gap: the live WebSocket handler still submits commands without propagating the authenticated connection principal/authority kind into the control-plane actor path. That is tracked in `lost-rob0t/quasar#52` with tests-first PR #53. Until that transport provenance and the trusted StarIntel credential -> Quasar delegated-session registration adapter are exact-head green and merged/deployed, the Bixby gateway must continue to fail closed with `AUTODIG_CAPABILITY_UNAVAILABLE` rather than advertising lifecycle commands prematurely.
+Merged PR #53 (`c1e5439b4ae84af2ba069c4b3bd363e78aef702d`) fixes the live WebSocket provenance gap: authenticated connection principal and `:delegated-user` authority now propagate through live WebSocket dispatch into the control-plane actor path. Cross-user run isolation therefore applies to the real WebSocket command path rather than only direct in-process submission.
+
+One P0 owner gap remains: delegated session registration must be consumable by a trusted StarIntel service adapter without making the gateway service identity equal to the human principal or letting a public caller select Quasar capabilities. This is tracked in `lost-rob0t/quasar#54`. Draft PR #60 is implementing that boundary TDD-first with fixed StarIntel scope mapping, explicit workspaces, a private service-authenticated registration seam, and one-time short-lived WebSocket session tokens. Until #60 is exact-head green, merged and deployed, the Bixby gateway must continue to fail closed with `AUTODIG_CAPABILITY_UNAVAILABLE`.
 
 No gateway-local lifecycle DB, browser/Playwright authority, direct Auto-Dig storage edit, RabbitMQ shortcut or shell compatibility path is permitted. Once enabled, start returns a durable run ID promptly; Bixby never waits for research completion in one HTTP request.
 
