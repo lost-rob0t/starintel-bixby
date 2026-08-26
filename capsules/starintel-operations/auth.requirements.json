@@ -9,5 +9,5 @@
   "forwardVivContext": false,
   "credentialOwner": "Samsung Developer Center Configuration & Secrets",
   "upstreamAuthority": "StarIntel human principal",
-  "notes": "Operations uses one StarIntel human principal with canonical target dispatch authority plus bounded Auto-Dig read/control scopes. Internal Quasar service authority remains behind the optional StarIntel Bixby add-on boundary."
+  "notes": "Operations uses one StarIntel human principal with canonical target dispatch authority plus bounded Auto-Dig read/control scopes. The infra-owned starintel-bixby-gateway translates the Bixby contract to canonical StarIntel and Quasar owner interfaces and never owns user authority or Auto-Dig state."
 }
