@@ -5,6 +5,9 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "contracts" / "bixby-v1.json"
 AGENTS = ROOT / "AGENTS.md"
+OPERATIONS_AUTH = ROOT / "capsules" / "starintel-operations" / "auth.requirements.json"
+RESEARCH = ROOT / "docs" / "research.md"
+TESTING = ROOT / "docs" / "testing.md"
 OPERATIONS = ROOT / "fixtures" / "operations"
 ERRORS = ROOT / "fixtures" / "errors"
 
@@ -63,6 +66,13 @@ FORBIDDEN_TEXT = (
     "stack trace",
 )
 
+RETIRED_OWNERSHIP_TEXT = (
+    "optional starintel bixby add-on",
+    "optional `starintel-bixby` common lisp add-on",
+    "load-addon :starintel-bixby",
+    "create-bixby-oauth-client",
+)
+
 
 def load(path):
     return json.loads(path.read_text())
@@ -87,6 +97,18 @@ class ContractFreezeTests(unittest.TestCase):
         self.assertIn("starintel-labs/starintel-infra", text)
         self.assertNotIn("there is no standalone bixby gateway service", text)
         self.assertNotIn("no standalone bixby gateway", text)
+
+    def test_active_docs_and_auth_do_not_resurrect_server_addon_ownership(self):
+        text = "\n".join(
+            [
+                RESEARCH.read_text(),
+                TESTING.read_text(),
+                OPERATIONS_AUTH.read_text(),
+            ]
+        ).lower()
+        for retired in RETIRED_OWNERSHIP_TEXT:
+            self.assertNotIn(retired, text)
+        self.assertIn("starintel-bixby-gateway", text)
 
     def test_contract_declares_exact_public_v1_surface_and_authority_split(self):
         contract = load(CONTRACT)
