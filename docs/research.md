@@ -1,214 +1,150 @@
 # StarIntel Bixby research
 
-Status: Phase 0 evidence for issue #4, with issue #11 dual-mode authentication/provider re-check. This document records current official Samsung/Bixby behavior and current StarIntel/Quasar/infra authority boundaries. It is not evidence of Simulator, private-submission, Developer Center, or on-device execution.
+Status: current Phase-0/contract-freeze evidence for issues #4 and #8, refreshed 2026-08-26. This document records documentation/repository evidence only. It is **not** evidence that Samsung Developer Center registration, Bixby Developer Studio Simulator execution, private submission, or Galaxy on-device validation has occurred.
 
-## 2026-08-25 official Samsung revalidation
+## 2026-08-26 Samsung/Bixby revalidation
 
-The current official Bixby Developer Center documentation was rechecked before further capsule work. The core platform assumptions used by this repository remain valid:
+Current official Samsung/Bixby documentation was rechecked before freezing the v1 contract. The current platform still supports the capsule mechanics used here.
 
-- `authorization.bxb` remains a root-level capsule declaration. User OAuth still uses `oauth2-authorization-code` with `authorize-endpoint`, `client-id`, `client-secret-key`, optional `scope`, and `token-endpoint`. `client-secret-key` is the name of a secret stored in Developer Center Configuration & Secrets, not the secret value committed to capsule source: https://corp.bixbydevelopers.com/dev/docs/reference/type/authorization
-- Bixby Developer Studio still creates capsule projects with `capsule.bxb` plus `endpoints.bxb`; `endpoints.bxb` continues to map actions to local or remote endpoints: https://corp.bixbydevelopers.com/dev/docs/get-started/quick-start
-- Remote action endpoints remain supported with explicit HTTP methods: https://corp.bixbydevelopers.com/dev/docs/reference/type/endpoints.action-endpoints.action-endpoint.remote-endpoint
-- Explicit action confirmation remains current. Samsung documents `type (Commit)` actions using `confirm { by (...) }` and a matching `confirmation-view`, which remains the correct primitive for StarIntel target and Auto-Dig mutations: https://bixbydevelopers.com/dev/docs/dev-guide/design-guides/writing.tone-style and https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/handling-nl.guiding-conversations
-- Samsung continues to caution against unconditional app punch-out and recommends attribution links where appropriate; StarIntel document results should therefore remain user-selected links rather than automatically launching a browser: https://corp.bixbydevelopers.com/dev/docs/reference/type/result-view.app-launch
-- Developer Studio remains online-dependent and is still the supported environment for capsule development/testing. This revalidation is documentation evidence only; it does not claim Simulator, private submission, Developer Center registration, or Galaxy-device execution: https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/ide
+Primary official sources:
 
-No current official evidence found in this recheck requires changing the two-capsule authority split, dual-mode Intelligence OAuth design, confirmation boundary, local JavaScript adapter strategy, or capsule-first contract-freeze order.
-
-## Samsung/Bixby — current official findings
-
-Research date: 2026-08-24.
-
-Official documentation currently remains live at the Bixby Developer Center and advertises Bixby Developer Studio 8.23.1-r24c.2843029.
-
-Primary sources:
-
-- https://bixbydevelopers.com/
-- https://corp.bixbydevelopers.com/dev/docs/reference/type/capsule
-- https://corp.bixbydevelopers.com/dev/docs/reference/type/endpoints
-- https://corp.bixbydevelopers.com/dev/docs/reference/type/authorization
-- https://corp.bixbydevelopers.com/dev/docs/reference/capsule-config
-- https://bixbydevelopers.com/dev/docs/dev-guide/developers/modeling.actions.using-oauth
-- https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/modeling.actions.configuring-endpoints
-- https://bixbydevelopers.com/dev/docs/dev-guide/release-notes/sdk.2020-Q1-SDK-Release-Notes
-- https://corp.bixbydevelopers.com/dev/docs/get-started/quick-start
-- https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/creating-ui.building-views.views
-- https://corp.bixbydevelopers.com/dev/docs/reference/type/confirmation-view
-- https://corp.bixbydevelopers.com/dev/docs/sample-capsules/samples/continuation
-- https://corp.bixbydevelopers.com/dev/docs/reference/type/attribution-link
-- https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/testing
-- https://bixbydevelopers.com/dev/docs/dev-guide/developers/testing.on-device
-- https://bixbydevelopers.com/dev/docs/dev-guide/developers/deploying.can-submission
+- Capsule metadata: https://corp.bixbydevelopers.com/dev/docs/reference/type/capsule
+- Quick start / capsule project shape: https://corp.bixbydevelopers.com/dev/docs/get-started/quick-start
+- Endpoints: https://corp.bixbydevelopers.com/dev/docs/reference/type/endpoints
+- Remote endpoints: https://corp.bixbydevelopers.com/dev/docs/reference/type/endpoints.action-endpoints.action-endpoint.remote-endpoint
+- Authorization: https://corp.bixbydevelopers.com/dev/docs/reference/type/authorization
+- OAuth actions: https://bixbydevelopers.com/dev/docs/dev-guide/developers/modeling.actions.using-oauth
+- Views: https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/creating-ui.building-views.views
+- Confirmation views: https://corp.bixbydevelopers.com/dev/docs/reference/type/confirmation-view
+- Conversational continuation sample: https://corp.bixbydevelopers.com/dev/docs/sample-capsules/samples/continuation
+- Attribution links: https://corp.bixbydevelopers.com/dev/docs/reference/type/attribution-link
+- Developer Studio / IDE: https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/ide
+- Testing: https://corp.bixbydevelopers.com/dev/docs/dev-guide/developers/testing
+- On-device testing: https://bixbydevelopers.com/dev/docs/dev-guide/developers/testing.on-device
+- Submission: https://bixbydevelopers.com/dev/docs/dev-guide/developers/deploying.can-submission
 
 ### Capsule project shape
 
-`capsule.bxb` is still the required root capsule metadata file. Current examples use `format (3)` and explicit targets such as `bixby-mobile-en-US`. The exact production namespace must come from the operator's registered Developer Center team/capsule. Development may use `playground`; private/public submission must use the registered organization namespace.
+`capsule.bxb` remains the root capsule metadata file. Current examples use format 3 and explicit Bixby targets/locales. `endpoints.bxb` remains the action-to-local/remote endpoint mapping surface. Remote HTTP endpoints remain supported and can declare explicit methods.
 
-`endpoints.bxb` is still required and belongs under a resources locale/base directory. It maps actions to local JavaScript endpoints or remote HTTP endpoints. Remote HTTP endpoints remain a supported first-class model, but this project should keep a thin local endpoint adapter where it materially helps inject OAuth/configuration, normalize gateway errors, and keep the public gateway origin configurable.
+The production capsule namespace must come from the registered Samsung Developer Center organization. `playground` is acceptable for development but is not a substitute for a registered namespace during private/public submission.
 
-Bixby models remain concept/action based. Training examples bind natural utterances to goals and annotated concepts, and the NL model must be compiled before Simulator training validation.
+### Actions, views and confirmations
 
-### Authentication
+Bixby remains concept/action based. Result views and confirmation views remain current. Mutating StarIntel actions use Bixby's transactional/commit confirmation pattern: prepare data, render the proposed operation, require an affirmative confirmation, then execute the commit action. Confirmation is a Bixby UX gate only; StarIntel/Quasar owner boundaries still reauthenticate, reauthorize and revalidate the mutation.
 
-`authorization.bxb` remains the current supported authorization declaration. User-scoped `oauth2-authorization-code` is explicitly documented with authorize endpoint, client ID, `client-secret-key`, optional scope, and token endpoint.
-
-The `client-secret-key` is a lookup key for a secret entered in Developer Center Configuration & Secrets. The secret value must not be committed to this repository.
-
-Current endpoint authorization is opt-in. An action endpoint with no authorization annotation does not use OAuth. Samsung also documents optional user OAuth for endpoints: an endpoint may use optional user authorization so public-compatible actions do not automatically force login. Local JavaScript can detect whether `$vivContext.accessToken` exists, use ordinary `http` methods for anonymous execution, use `http.oauth*` methods for signed-in execution, and throw an `authorization-error` to trigger login/reauthorization when an authenticated credential is invalid or revoked.
-
-Important privacy consequence: `$vivContext` contains Samsung/Bixby runtime context and must not be forwarded wholesale. For StarIntel, local JavaScript should inspect only the presence of the managed access token needed to select authenticated transport. It must not treat `$vivContext.bixbyUserId` as StarIntel identity, and it must not copy access tokens, Samsung profile/device/location metadata, or other ambient context into StarIntel request bodies, queries, logs, or returned models.
-
-Current issue #11 decision for StarIntel Intelligence is therefore dual-mode, not anonymous-only and not mandatory-login-only:
-
-1. Guest mode: no login; the gateway/server uses the server-owned synthetic public-read context from `starintel-server#109`.
-2. Signed-in mode: optional Bixby user OAuth; the StarIntel OAuth provider maps the token to a real StarIntel human principal and normal server-side authorization determines that principal's readable/searchable datasets and tenants.
-
-An authenticated request that receives invalid/expired/revoked credentials must fail closed and trigger reauthorization rather than silently retrying as guest. A valid token with insufficient scope remains forbidden. The public path remains available for requests that are genuinely guest-compatible.
-
-The same human-user identity architecture is reused by Operations with additional scopes. Do not create a second Operations account system and do not substitute a capsule-global service credential for user identity.
-
-The canonical StarIntel OAuth provider is now implemented and merged in `lost-rob0t/starintel-server` at `4f2f70126bc59e18681844019460a33709e1eba6`. Core StarIntel owns `/oauth/authorize`, `/oauth/token`, existing human principals, exact redirect/client/scope validation, S256 PKCE, one-time authorization codes, short-lived bearer tokens and downstream request-security-context authorization. The optional `starintel-bixby` Common Lisp add-on projects Samsung-specific configuration and explicitly creates a normal core OAuth client; it does not fork the auth system.
-
-What remains before a real Intelligence `authorization.bxb` can be committed is registration/deployment data, not provider architecture: a deployed public HTTPS OAuth origin running that provider, the real registered Bixby capsule ID and exact callback URI, the public OAuth client ID returned by StarIntel client registration, and the Developer Center `client-secret-key` name containing the one-time client secret. These values must not be fabricated. Until they exist, `auth.requirements.json.registrationComplete` stays false and endpoint authorization annotations remain absent.
-
-Keep four identities distinct:
-
-1. Bixby/Samsung runtime/user context;
-2. optional authenticated StarIntel human principal;
-3. Bixby gateway service identity;
-4. gateway-to-StarIntel/Quasar upstream service identity.
-
-Capsule authority remains split:
-
-- Intelligence guest: public synthetic read only.
-- Intelligence signed-in: canonical read/search scopes only.
-- Operations: only the additional scopes needed for target and Auto-Dig actions (`starintel.targets.write`, `starintel.autodig.read`, `starintel.autodig.control` or canonical server equivalents).
-
-### Configuration and secrets
-
-Developer Center Configuration & Secrets remains current. `config.get()` reads configuration and `secret.get()`/secret lookup reads secrets in local JavaScript. Dynamic configuration changes require a new Simulator conversation/reset/recompile before they are visible.
-
-Important constraint: dynamic Developer Center endpoint URI values are not directly available inside `endpoints.bxb`; use local JavaScript when the gateway origin must be supplied by Developer Center configuration rather than hard-coded in the model file. Samsung's current OAuth declaration still requires a public `client-id` and a `client-secret-key` reference in capsule source; the secret value itself remains in Developer Center.
-
-### Views, links, and confirmation
-
-`result-view` and locale resource views remain current. For public StarIntel document links, prefer `attribution-link` in a result view. Samsung explicitly recommends attribution links over unconditional app launch for most cases because the user makes an explicit decision to leave Bixby.
-
-Do not make every document result force a browser/app launch. `app-launch` is policy-constrained and can cause marketplace rejection when misused.
-
-For mutating operations, `confirmation-view` remains current. Samsung documents a corresponding action with the `confirm` key, and `mode (Transactional)` requires a corresponding transactional action. This directly supports StarIntel's required prepare -> confirmation -> commit split.
+Current confirmation evidence supports `type (Commit)` actions with a corresponding confirmation definition/view. StarIntel Operations therefore keeps confirmed target commit and confirmed Auto-Dig start/stop, with confirmation also used for pause/resume unless a later platform constraint requires otherwise.
 
 ### Conversational context
 
-Bixby still supports continuation training. A continuation goal explicitly reuses previous conversational context. This is the correct platform mechanism for follow-ups such as:
+Bixby continuations remain current. Continuation goals can reuse selected conversational context, which is the appropriate mechanism for:
 
-- "Who is this person?"
-- "Tell me more about this person"
-- "Show me documents about this person"
-- "What's it doing?" after selecting/starting an Auto-Dig run.
+- `Who is this person?`
+- `Tell me more about this person`
+- `Show me documents about this person`
+- `What's it doing?` after an Auto-Dig run is selected or started.
 
-Cold-start follow-ups must elicit the missing person/run rather than guess.
+A cold-start contextual phrase has no valid selected entity and must elicit the missing person/run instead of guessing.
 
-### Testing and submission
+### Document navigation
 
-Bixby Developer Studio still provides Device Simulator, Debug Console, stories/assertions, training compilation, revision loading, and submission tooling.
+Attribution links remain supported and are preferred for StarIntel document results. The user explicitly chooses to leave Bixby. Do not force browser/app launch after every result.
 
-On-device testing requires Developer Center registration and a compatible Bixby device. Samsung recommends private submissions or local workspace builds until public release. A private submission requires the registered organization namespace and Developer Center capsule registration. Current on-device docs support loading either a private revision or a local Studio workspace via QR code.
+### OAuth and Configuration & Secrets
 
-No proprietary Samsung validation has been run from this environment. Therefore this repository may only claim static/fixture checks until an operator performs the documented Studio/Developer Center/device gate.
+`authorization.bxb` remains a root-level capsule declaration. User OAuth supports `oauth2-authorization-code` with an authorize endpoint, client ID, `client-secret-key`, optional scope, and token endpoint. `client-secret-key` names a secret stored in Samsung Developer Center Configuration & Secrets; the secret value must never be committed here.
+
+Endpoint authorization remains action-specific. Intelligence can therefore support public guest requests plus optional signed-in requests, while Operations requires signed-in user authorization.
+
+The capsule must not treat `$vivContext.bixbyUserId` as StarIntel identity and must not forward raw `$vivContext`, Samsung profile/device/location context, access tokens in request bodies, or ambient Samsung metadata. StarIntel identity comes from the canonical OAuth principal.
+
+Current authority split:
+
+- Intelligence guest: server-owned synthetic public-read authority.
+- Intelligence signed-in: optional StarIntel user OAuth, read/search scopes only.
+- Operations: same StarIntel human principal with canonical `targets:dispatch` plus bounded Auto-Dig read/control scopes.
+
+### Samsung manual boundary
+
+Bixby Developer Studio remains the supported development/testing environment and includes Simulator-oriented testing. Private submission and on-device testing still require real Developer Center registration and a compatible Galaxy/Bixby device. No such proprietary/manual execution was performed in this environment; repository CI is limited to deterministic static/fixture/model/reference checks.
 
 ### Explicitly rejected Samsung paths
 
-- Samsung Automation Studio Capsule Node shortcut: not the Bixby capsule architecture required here.
-- one giant privileged capsule: violates least privilege and epic #1.
-- anonymous-only Intelligence as the final architecture: loses real StarIntel user support.
-- mandatory login for every Intelligence lookup: unnecessarily removes public guest search.
-- manual bearer-token plumbing in capsule request bodies/headers: Bixby-managed OAuth HTTP methods are the safer supported path.
-- app-launch after every document result: contrary to current punch-out guidance; attribution links are preferred.
-- browser/UI automation as runtime authority: not a StarIntel or Bixby control plane.
+- Samsung Automation Studio Capsule Node shortcut.
+- one giant privileged capsule.
+- manual bearer-token plumbing in capsule request bodies.
+- forwarding raw `$vivContext`.
+- forced browser punch-out after every document result.
+- browser/UI automation as StarIntel or Auto-Dig runtime authority.
 
-## StarIntel server — current authority
+## StarIntel server — current owner boundary
 
-Evidence source: `lost-rob0t/starintel-server` through merge `4f2f70126bc59e18681844019460a33709e1eba6`, with earlier Phase-0 route/schema evidence retained below where still applicable.
+Remote GitHub state is authoritative.
 
-The server exposes machine-readable discovery at:
+The canonical StarIntel OAuth provider is merged in `lost-rob0t/starintel-server` at `4f2f70126bc59e18681844019460a33709e1eba6`. Core owns human principals, OAuth authorization/token handling, redirect/client/scope validation, PKCE, bearer verification and normal authorization semantics.
 
-- `GET /openapi.json` — OpenAPI 3.1.2;
-- `GET /client-manifest.json` — normalized StarIntel client manifest.
+The generic target-create candidate is `lost-rob0t/starintel-server#127`. At the 2026-08-26 refresh it is **open/draft**, not merged authority. It implements the desired owner-side direction: generic `/api/v1/targets`, canonical `targets:dispatch`, principal-bound deterministic idempotency, changed-content conflict detection and narrow receipts. The Bixby contract may target those semantics, but gateway target commit must remain gated on an exact-head-green merged owner interface or an equivalent canonical successor. The gateway must not recreate idempotency locally as the authoritative target owner.
 
-The contracted operation registry covers health/server metadata, auth/user/credential lifecycle, contract discovery and the growing versioned public surface. Legacy document/search/target routes remain implemented but are not yet all migrated into the generated named-operation registry.
+For person/document/search calls, prefer machine-readable named client/capability operations where available. Any unavoidable legacy route compatibility belongs in one gateway adapter, never scattered through capsule JavaScript.
 
-Important boundary: the Bixby gateway must discover and prefer named generated/client operations when available. Any unavoidable legacy StarIntel routes must be isolated behind one adapter rather than copied into capsule logic or scattered through the gateway.
+Voice-facing `TargetActor`/`TargetType` values remain presentation inputs only. The gateway must resolve them against canonical StarIntel actor/type metadata. Speech cannot select queue names, exchanges, routing keys, shell commands, private URLs, or raw implementation identifiers.
 
-Current HTTP behavior includes:
+## Quasar / Auto-Dig — current owner boundary
 
-- legacy API-key and OAuth bearer authentication through the shared bearer/request-security-context boundary;
-- public `/oauth/authorize` and `/oauth/token` protocol endpoints with exact client/redirect/scope validation and S256 PKCE;
-- public synthetic-context `/api/v1/search` and aggregate stats from #109 without weakening mutation authorization;
-- allow-listed CORS;
-- `X-Correlation-ID` support;
-- bounded `X-Request-Timeout-Ms` support;
-- client-safe errors with status/message/correlation ID and generally stable codes;
-- bounded JSON request bodies.
+Quasar main still defines the typed/versioned envelope `quasar.control.v1` in `control-plane/src/protocol.lisp`.
 
-Current legacy routes relevant to discovery include `GET /search`, `GET /document/:id`, `POST /new/target/:actor`, and `GET /targets/:actor`. These are compatibility facts, not the desired public Bixby contract.
+A complete desired Auto-Dig lifecycle was implemented and exact-head tested on `lost-rob0t/quasar#43`, including:
 
-### Targets and actors
+- `autodig.status`
+- `autodig.run.get`
+- `autodig.run.list`
+- `autodig.run.start`
+- `autodig.run.pause`
+- `autodig.run.resume`
+- `autodig.run.stop`
 
-Current actor docs describe target rows with legacy fields such as `actor`, `target`, `delay`, `recurring`, and `options`, plus normal StarIntel metadata. Actor routing supports registered in-process actors and external actor names which route to RabbitMQ internally.
+That PR was closed **without merge**. Therefore those lifecycle commands are not production/main authority merely because their branch was green. Current Bixby Operations correctly keeps Auto-Dig lifecycle capability-gated and fail-closed. The public Bixby contract may define the presentation shape, but `starintel-bixby-gateway` must return `AUTODIG_CAPABILITY_UNAVAILABLE` until deployed capability discovery proves the corresponding owner operation is present.
 
-This proves a critical security boundary: Bixby must never accept an arbitrary raw actor implementation name or RMQ topology from speech. The Operations capsule uses a presentation-level `TargetActor`; the gateway must resolve it against canonical actor discovery/allow-list metadata and then translate to the owning StarIntel target operation.
+No browser automation, UI state mutation, direct Auto-Dig database edits, RabbitMQ shortcuts, or shell compatibility layer may substitute for that missing owner capability.
 
-The current server documentation does not establish a safe Bixby idempotency contract for target creation. Exactly-once-under-retry must be verified at the owning target boundary before Operations commit is enabled. Do not fake idempotency in the capsule.
+Starting a run, once supported, must return a durable run ID immediately and must not keep a Bixby HTTP request open for research completion.
 
-## Quasar / Auto-Dig — current authority
+## Infrastructure — current owner boundary
 
-Evidence source: `lost-rob0t/quasar` at commit `560208d0906cf564dd59050bca9a0f9341a3c55d`.
+`starintel-labs/starintel-infra` is the canonical owner of the deployed `starintel-bixby-gateway` and its Nix packaging/modules, public ingress, service identity/secrets, health/readiness, monitoring and deployment. Infra epic #34 records that ownership.
 
-Quasar has a real typed/versioned control envelope: `quasar.control.v1`. The envelope carries protocol, command ID, command name, payload, client, and workspace metadata; responses are typed success/error envelopes and events carry workspace revision/operation IDs.
+Public path:
 
-The current core control-plane command registry found during Phase 0 includes system capability discovery plus workspace/document/graph operations. It is actor-backed and owns canonical workspace state through a single-writer command actor.
+```text
+Samsung/Bixby
+  -> StarIntel public edge
+  -> starintel-bixby-gateway
+  -> private StarIntel and Quasar/Auto-Dig owner services
+```
 
-Crucially, Phase 0 did not find canonical Auto-Dig run lifecycle commands (start/pause/resume/stop/status) in that core registry. `auto-dig-quasar` currently exposes UI/agent-supervisor code, which is not sufficient authority for Bixby runtime control.
+The gateway is a translation/security boundary, not a new intelligence database, target state owner, Auto-Dig state owner, or schema authority.
 
-Design consequence: the Bixby contract may model desired Auto-Dig operations, but the gateway must capability-discover them. If the required durable run lifecycle is absent, the smallest correct extension belongs in the owning Quasar/Auto-Dig control-plane repository before gateway implementation. No UI automation, direct Auto-Dig DB edits, RabbitMQ shortcuts, or shell compatibility layer.
+Canonical infra conventions remain:
 
-## StarIntel infrastructure — current authority
+- `main` is desired state;
+- services/ingress are declared through repository inventory/modules rather than ad-hoc deploy scripts;
+- backend addresses come from inventory, not hard-coded host IPs;
+- secrets stay outside Git and the Nix store using existing secret/systemd-credential conventions;
+- validation includes repository-native scripts plus `nix flake check --show-trace`.
 
-Evidence source: `starintel-labs/starintel-infra` main.
+A verified public Quasar document origin/route is still not established by the capsule repository. `DocumentUrl` remains part of the Bixby response contract, but the gateway must build links through one configured public-origin component after infra/UI evidence establishes the real public document route. Never hard-code a guessed hostname or emit `.star.intel`, private IP, CouchDB/RabbitMQ, or raw backend API links.
 
-Canonical service exposure is declared in `inventory/services.nix`. Public services declare a backend host/port/scheme, a `publicName`, and an ingress-capable `edgeHost`; Caddy routes are derived from inventory and backend addresses come from host inventory. Public DNS is a separate provider concern.
+## Frozen-contract consequences
 
-The private `.star.intel` namespace must never be published publicly or used for public ACME. The existing public edge model uses `starintel.actor` names through the declared edge.
-
-Current inventory declares the public `ingest.starintel.actor` service through `ord-edge`, but that declaration alone is not proof that the newly merged OAuth provider build is deployed there. The adopted `starintel-ingest` profile deliberately preserves existing application service definitions until live unit/Nix state has been captured, so provider deployment must be verified against the live service before the hostname is committed as OAuth authority.
-
-There is still no declared public Quasar service and therefore no currently verified canonical public Quasar document origin in infra. The example in docs is explicitly commented/private and is not deployed authority.
-
-Design consequence: document results can carry `DocumentUrl` in the frozen Bixby contract, but the gateway must build it from one configured public origin only after infra declares/validates the real public Quasar document route. Never hard-code `quasar.starintel.actor` from an example.
-
-Infra epic authority: `starintel-labs/starintel-infra#34`. Gateway work remains blocked until capsule contract/fixtures are coherent and frozen.
-
-## Phase-0 design consequences
-
-1. Build two actual capsules with separated authority.
-2. Intelligence is dual-mode: guest public search plus optional StarIntel user OAuth for read/search; Operations reuses the same user identity with additional scopes.
-3. Use local JavaScript endpoint adapters to read Developer Center configuration, select guest vs Bixby-managed OAuth transport, normalize the gateway boundary, and avoid forwarding ambient Bixby context; the capsule never receives StarIntel service credentials.
-4. Use continuation training for selected-person and selected-run follow-up; never infer visual/screen identity.
-5. Use transactional confirmation views for target creation and Auto-Dig mutations.
-6. Use attribution links for public document navigation by default.
-7. Freeze `/v1/bixby/...` request/response fixtures before infra implementation, including guest/authenticated variants and fail-closed token behavior.
-8. Treat person/document/target capsule concepts as Bixby contracts only. Backend canonical schemas remain owned by StarIntel.
-9. Capability-discover StarIntel and Quasar operations. The current StarIntel machine-readable registry is incomplete for legacy search/target, and the current Quasar core registry does not prove Auto-Dig lifecycle support.
-10. Keep Auto-Dig mutations disabled at integration time until an owning typed control-plane operation exists for each requested behavior.
-11. Public document URL generation remains a gateway/infra concern; no public Quasar origin has yet been verified from current infra inventory.
-
-## Open risks that must be resolved before production mutation
-
-- issue #11 still needs the real Bixby registration tuple: verified deployed OAuth origin, registered capsule ID/callback, StarIntel OAuth client ID and Developer Center secret-key name before `authorization.bxb` and optional endpoint authorization can be committed;
-- canonical person-search result schema/operation must be identified or added at its owning StarIntel boundary;
-- target actor discovery suitable for user-facing selection must be identified; raw actor/RMQ identifiers are not acceptable;
-- target idempotency under HTTP retry must be proven or fixed at the owning StarIntel boundary;
-- durable Auto-Dig run lifecycle control commands must be identified or implemented in the owning control plane;
-- public Quasar document origin and stable route must be declared/verified in infra before any `DocumentUrl` is emitted;
-- Developer Center namespace, OAuth client registration/secret storage, private submission, Simulator and Galaxy testing remain manual operator gates.
+1. Keep two capsules with separated authority.
+2. Intelligence supports guest public read plus optional signed-in user read/search.
+3. Operations requires the same signed-in StarIntel human principal with only additional target/Auto-Dig scopes.
+4. Public Bixby API family is `/v1/bixby/...`.
+5. Person ambiguity is explicit; no silent same-name selection.
+6. Selected person/run context is conversational Bixby state backed by stable owner IDs.
+7. Documents return bounded results (default 5, hard bounded by the frozen contract) and safe public attribution links.
+8. Target flow is prepare -> confirmation -> commit -> narrow receipt; owning StarIntel target idempotency is mandatory.
+9. Auto-Dig routes are capability-discovered and fail closed until real owner lifecycle support is deployed.
+10. Stable client errors never expose stack traces, Lisp/Python conditions, worker/lease internals, backend topology or credentials.
+11. The contract is frozen in `contracts/bixby-v1.json` plus fixtures before infra gateway implementation.
+12. Samsung Simulator/private-submission/Galaxy validation remains a manual operator gate documented in `docs/testing.md`.

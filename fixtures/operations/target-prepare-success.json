@@ -1,0 +1,1 @@
+{"status":200,"request":{"subject":"example.com","actor":"bbpd"},"response":{"draftId":"draft-01","subject":"example.com","actor":"bbpd","requiresConfirmation":true}}
