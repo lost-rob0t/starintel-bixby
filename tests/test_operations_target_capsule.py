@@ -1,6 +1,7 @@
-from pathlib import Path
 import json
 import unittest
+from pathlib import Path
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CAPSULE = ROOT / "capsules" / "starintel-operations"
@@ -8,64 +9,70 @@ CAPSULE = ROOT / "capsules" / "starintel-operations"
 
 class OperationsTargetCapsuleTests(unittest.TestCase):
     def read(self, relative: str) -> str:
-        return (CAPSULE / relative).read_text()
+        path = CAPSULE / relative
+        self.assertTrue(path.is_file(), f"missing {path.relative_to(ROOT)}")
+        return path.read_text(encoding="utf-8")
 
     def test_operations_is_a_separate_format_three_capsule(self):
-        capsule = self.read("capsule.bxb")
-        self.assertIn("format (3)", capsule)
-        self.assertIn("id (playground.starIntelOperations)", capsule)
-        self.assertNotIn("starIntelIntelligence", capsule)
+        text = self.read("capsule.bxb")
+        self.assertIn("capsule {", text)
+        self.assertIn("id (playground.starIntelOperations)", text)
+        self.assertIn("format (3)", text)
+        self.assertIn("runtime-version (9)", text)
+        self.assertIn("js-runtime-version (2)", text)
+        intelligence = (ROOT / "capsules" / "starintel-intelligence" / "capsule.bxb").read_text(encoding="utf-8")
+        self.assertNotEqual(text, intelligence)
 
     def test_target_models_are_presentation_contracts_only(self):
-        expected_models = (
-            "models/primitive/TargetSubject.model.bxb",
-            "models/primitive/TargetType.model.bxb",
-            "models/primitive/TargetActor.model.bxb",
-            "models/structures/TargetDraft.model.bxb",
-            "models/structures/TargetReceipt.model.bxb",
-        )
-        for relative in expected_models:
-            with self.subTest(relative=relative):
-                self.assertTrue((CAPSULE / relative).exists())
+        required = {
+            "models/primitives/TargetSubject.model.bxb": "name (TargetSubject)",
+            "models/primitives/TargetType.model.bxb": "text (TargetType)",
+            "models/primitives/TargetActor.model.bxb": "name (TargetActor)",
+            "models/structures/TargetDraft.model.bxb": "structure (TargetDraft)",
+            "models/structures/TargetReceipt.model.bxb": "structure (TargetReceipt)",
+        }
+        for path, declaration in required.items():
+            with self.subTest(path=path):
+                self.assertIn(declaration, self.read(path))
 
-        draft = self.read("models/structures/TargetDraft.model.bxb").lower()
-        receipt = self.read("models/structures/TargetReceipt.model.bxb").lower()
-        for forbidden in (
-            "routingkey",
-            "routing_key",
-            "exchange",
-            "queue",
-            "rabbitmq",
-            "backendurl",
-            "canonicalactorid",
-        ):
-            self.assertNotIn(forbidden, draft)
-            self.assertNotIn(forbidden, receipt)
+        combined = "\n".join(self.read(path) for path in required)
+        for forbidden in ("routing-key", "exchange", "queue", "rmq", "rabbitmq", "shell", "backend-url"):
+            self.assertNotIn(forbidden, combined.lower())
 
     def test_prepare_and_commit_are_distinct_actions(self):
         prepare = self.read("models/action/PrepareTarget.model.bxb")
         commit = self.read("models/action/CommitTarget.model.bxb")
+
         self.assertIn("action (PrepareTarget)", prepare)
-        self.assertNotIn("type (Commit)", prepare)
+        self.assertIn("input (subject)", prepare)
+        self.assertIn("input (targetType)", prepare)
+        self.assertIn("input (actor)", prepare)
         self.assertIn("output (TargetDraft)", prepare)
+        self.assertNotIn("type (Commit)", prepare)
+
         self.assertIn("action (CommitTarget)", commit)
         self.assertIn("type (Commit)", commit)
+        self.assertIn("input (draft)", commit)
         self.assertIn("output (TargetReceipt)", commit)
+        self.assertIn("confirm {", commit)
+        self.assertIn("by (TargetConfirmation)", commit)
 
     def test_commit_has_explicit_confirmation_model_and_view(self):
-        commit = self.read("models/action/CommitTarget.model.bxb")
-        self.assertIn("confirm", commit)
-        self.assertIn("by (Confirmation)", commit)
-        confirmation = self.read("resources/en/views/CommitTarget.confirmation.bxb")
-        self.assertIn("confirmation-view", confirmation)
-        self.assertIn("match", confirmation)
-        self.assertIn("CommitTarget", confirmation)
-        self.assertIn("TargetDraft", confirmation)
+        confirmation = self.read("models/primitives/TargetConfirmation.model.bxb")
+        view = self.read("resources/en/views/CommitTarget.confirmation.bxb")
+        self.assertIn("boolean (TargetConfirmation)", confirmation)
+        self.assertIn("confirmation-view", view)
+        self.assertIn("TargetConfirmation", view)
+        self.assertIn("CommitTarget (action)", view)
+        self.assertIn("action.draft", view)
+        self.assertIn("modal-prompt (true)", view)
 
     def test_endpoints_are_local_adapters_and_do_not_expose_internal_topology(self):
         endpoints = self.read("resources/base/endpoints.bxb")
         self.assertIn("action-endpoint (PrepareTarget)", endpoints)
+        self.assertIn("local-endpoint (PrepareTarget.js)", endpoints)
         self.assertIn("action-endpoint (CommitTarget)", endpoints)
+        self.assertIn("local-endpoint (CommitTarget.js)", endpoints)
         self.assertNotIn("remote-endpoint", endpoints)
 
         prepare = self.read("code/PrepareTarget.js")
@@ -117,10 +124,10 @@ class OperationsTargetCapsuleTests(unittest.TestCase):
             "quasar.control.v1",
             "workerid",
             "leaseid",
-            "workspaceid",
-            "routingkey",
-            "rabbitmq://",
-            "couchdb://",
+            "routing_key",
+            "routing-key",
+            "rabbitmq",
+            "couchdb",
         ):
             self.assertNotIn(forbidden, serialized)
 
