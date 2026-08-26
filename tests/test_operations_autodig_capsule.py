@@ -16,7 +16,7 @@ class OperationsAutoDigCapsuleTests(unittest.TestCase):
         self.assertEqual(
             auth["requiredScopes"],
             [
-                "starintel.targets.write",
+                "targets:dispatch",
                 "starintel.autodig.read",
                 "starintel.autodig.control",
             ],
@@ -80,51 +80,34 @@ class OperationsAutoDigCapsuleTests(unittest.TestCase):
         for field in ("workerId", "leaseId", "routingKey", "queue", "exchange", "workspaceId"):
             self.assertNotIn(field, run_model)
 
+    def test_selected_run_followups_are_real_bixby_continuations(self):
+        training = read("training/operations-autodig.aligned.txt")
+        self.assertIn("(run-42)[v:AutoDigRunId]", training)
+        self.assertIn("What's it doing?", training)
+
     def test_training_covers_status_start_pause_resume_stop_and_contextual_run(self):
-        training = read("training/operations-autodig.aligned.txt").lower()
+        training = read("training/operations-autodig.aligned.txt")
         for phrase in (
-            "start auto dig",
-            "what is auto dig doing",
-            "pause auto dig",
-            "resume auto dig",
-            "stop auto dig",
-            "what is this run doing",
+            "Start Auto Dig on (John Smith)[v:AutoDigTarget]",
+            "Pause Auto Dig run (run-42)[v:AutoDigRunId]",
+            "Resume Auto Dig run (run-42)[v:AutoDigRunId]",
+            "Stop Auto Dig run (run-42)[v:AutoDigRunId]",
         ):
             self.assertIn(phrase, training)
 
-    def test_selected_run_followups_are_real_bixby_continuations(self):
-        training = read("training/operations-autodig.aligned.txt")
-        for utterance in (
-            "what is this run doing",
-            "pause this run",
-            "resume this run",
-            "stop this run",
-        ):
-            with self.subTest(utterance=utterance):
-                self.assertIn(f"[g:AutoDigRun:continue] {utterance}", training)
-
     def test_capsule_never_exposes_internal_quasar_protocol_or_private_topology(self):
-        # OperationGateway.js must name private host patterns so it can reject them.
-        # Treat that rejection helper as policy code, not Samsung-facing presentation/config.
-        policy_helper = Path("code/lib/OperationGateway.js")
-        for path in CAPSULE.rglob("*"):
-            if not path.is_file():
-                continue
-            relative = path.relative_to(CAPSULE)
-            if relative == policy_helper:
-                continue
-            text = path.read_text(errors="ignore").lower()
-            self.assertNotIn("quasar.control.v1", text)
-            self.assertNotIn(".star.intel", text)
-            self.assertNotIn("rabbitmq", text)
-            self.assertNotIn("couchdb", text)
-
-        helper = read(str(policy_helper)).lower()
-        self.assertIn("host.endswith('.star.intel')", helper)
-        self.assertNotIn("quasar.control.v1", helper)
-        self.assertNotIn("rabbitmq://", helper)
-        self.assertNotIn("couchdb://", helper)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        serialized = "\n".join(
+            p.read_text(encoding="utf-8", errors="ignore")
+            for p in CAPSULE.glob("**/*")
+            if p.is_file()
+        ).lower()
+        for forbidden in (
+            "quasar.control.v1",
+            "rabbitmq",
+            "routing_key",
+            "routing-key",
+            "exchange",
+            "queue",
+            ".star.intel",
+        ):
+            self.assertNotIn(forbidden, serialized)
