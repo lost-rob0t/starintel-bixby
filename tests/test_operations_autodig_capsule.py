@@ -42,6 +42,24 @@ class OperationsAutoDigCapsuleTests(unittest.TestCase):
                 self.assertIn(f"action-endpoint ({action})", endpoints)
                 self.assertIn(route, read(f"code/{action}.js"))
 
+    def test_autodig_runtime_availability_is_explicit_and_fail_closed(self):
+        manifest = json.loads(read("autodig.capabilities.json"))
+        self.assertEqual(manifest["source"], "backend-capability-discovery")
+        self.assertIs(manifest["defaultAvailable"], False)
+        self.assertEqual(
+            manifest["operations"],
+            {
+                "status": False,
+                "getRun": False,
+                "listRuns": False,
+                "start": False,
+                "pause": False,
+                "resume": False,
+                "stop": False,
+            },
+        )
+        self.assertEqual(manifest["unavailableError"], "AUTODIG_CAPABILITY_UNAVAILABLE")
+
     def test_mutating_autodig_actions_are_commit_and_confirmation_gated(self):
         for action in ("StartAutoDig", "PauseAutoDig", "ResumeAutoDig", "StopAutoDig"):
             with self.subTest(action=action):
