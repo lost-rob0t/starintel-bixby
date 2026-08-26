@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 
 SAFE_ATOM = re.compile(r"^[A-Za-z0-9._:-]+$")
 CAPSULE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9][A-Za-z0-9_-]*)+$")
-SCOPES = ("starintel.targets.write", "starintel.autodig.read", "starintel.autodig.control")
+SCOPES = ("targets:dispatch", "starintel.autodig.read", "starintel.autodig.control")
 OPERATIONS_ACTIONS = (
     "PrepareTarget", "CommitTarget", "GetAutoDigStatus", "GetAutoDigRun",
     "ListAutoDigRuns", "StartAutoDig", "PauseAutoDig", "ResumeAutoDig", "StopAutoDig",
