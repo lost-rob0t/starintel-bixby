@@ -5,9 +5,9 @@ This repository is the canonical home of Samsung/Bixby-facing StarIntel integrat
 ## Ownership
 
 - Samsung/Bixby capsule source, capsule-local JavaScript, Bixby presentation/input models, training, views, contract fixtures, and Samsung testing documentation live here.
-- Generic StarIntel authentication, authorization, person/document/search behavior, target lifecycle/idempotency, and generic Auto-Dig/Quasar client boundaries belong to their owning StarIntel/Quasar repositories.
-- The optional `starintel-bixby` add-on in `lost-rob0t/starintel-server` owns only Samsung/Bixby-specific HTTP projection, Bixby-safe response shaping, callback/client configuration helpers, and add-on route lifecycle.
-- `starintel-labs/starintel-infra` owns declarative deployment, public-edge exposure, TLS/DNS, secret wiring, health checks, and monitoring for StarIntel Server with that add-on enabled. There is no standalone Bixby gateway service.
+- Generic StarIntel authentication, authorization, person/document/search behavior, target lifecycle/idempotency, and generic Auto-Dig/Quasar control semantics belong to their owning StarIntel/Quasar repositories.
+- `starintel-labs/starintel-infra` owns the deployed `starintel-bixby-gateway`, its Nix packaging/modules, public-edge exposure, TLS/DNS, secret wiring, health checks, monitoring, and deployment.
+- The gateway is a thin Samsung/Bixby translation boundary. It is not a new intelligence database, target owner, Auto-Dig state owner, or schema authority.
 - Canonical StarIntel document, person, target, relation, actor, and Auto-Dig runtime schemas remain owned by their existing repositories. Capsule concepts are presentation/input contracts only and must not redefine those schemas.
 
 ## Authority and security
@@ -15,7 +15,7 @@ This repository is the canonical home of Samsung/Bixby-facing StarIntel integrat
 - The **StarIntel Intelligence** capsule is read-only. It must not receive target-write or Auto-Dig-control authority.
 - The **StarIntel Operations** capsule is privileged and must request only the additional scopes required for target and Auto-Dig operations.
 - All state-changing operations require an explicit Bixby confirmation before commit.
-- StarIntel must independently authenticate, authorize, validate, and idempotently commit every mutation after confirmation.
+- StarIntel/Quasar owner boundaries must independently authenticate, authorize, validate, and idempotently commit mutations after confirmation.
 - Never commit StarIntel API keys, OAuth client secrets, private tokens, backend admin credentials, private certificates, or generated private Samsung metadata.
 - Never return CouchDB URLs, RabbitMQ URLs, Valkey endpoints, `.star.intel` names, private IPs, raw backend API URLs, raw actor implementation identifiers, queue names, exchanges, or routing keys to users.
 - Voice input must never become a shell command, backend URL, RabbitMQ topology value, or raw implementation identifier.
@@ -24,9 +24,9 @@ This repository is the canonical home of Samsung/Bixby-facing StarIntel integrat
 
 - Discover backend capabilities instead of assuming they exist.
 - Use canonical StarIntel capability/client operations when available.
-- Samsung-specific `/v1/bixby/...` adapters must delegate to generic owner APIs; never duplicate target, auth, search, or Auto-Dig semantics inside the add-on.
-- Isolate unavoidable legacy StarIntel route compatibility in one owner-side adapter rather than copying legacy route strings into capsule logic.
-- Auto-Dig operations must use the owning Quasar/Auto-Dig control plane. Do not automate a browser, use Playwright against the UI, edit the Git-backed Auto-Dig corpus directly, access CouchDB/RabbitMQ directly, or add a shell-script compatibility runtime.
+- Samsung-specific `/v1/bixby/...` gateway adapters must delegate to generic owner APIs; never duplicate target, auth, search, or Auto-Dig semantics in the gateway.
+- Isolate unavoidable legacy route compatibility in one gateway adapter rather than copying raw owner routes into capsule logic.
+- Auto-Dig operations must use the owning typed/versioned Quasar/Auto-Dig control plane. Do not automate a browser, use Playwright against the UI, edit Auto-Dig storage directly, access CouchDB/RabbitMQ directly, or add a shell-script compatibility runtime.
 - Long-running Auto-Dig work must return a durable run identifier promptly and be queried separately for status.
 
 ## Samsung/Bixby rules
@@ -40,12 +40,12 @@ This repository is the canonical home of Samsung/Bixby-facing StarIntel integrat
 
 ## Testing and delivery
 
-- TDD/fixtures first: failing deterministic test or contract validation -> minimal implementation -> local verification -> integration verification.
-- Freeze the Bixby-facing HTTP contract and fixtures before implementing the corresponding Bixby-specific server projection.
-- Contract changes caused by real backend constraints must update capsule models/fixtures and the server add-on projection together.
+- TDD/fixtures first: failing deterministic test or contract validation -> minimum implementation -> local verification -> integration verification.
+- Freeze the Bixby-facing HTTP contract and fixtures before implementing the corresponding `starintel-bixby-gateway` behavior in infra.
+- Contract changes caused by real backend constraints must update capsule models/fixtures and gateway adapters together explicitly.
 - Do not weaken, skip, swallow, or false-green tests.
 - Keep manual Samsung testing requirements explicit in `docs/testing.md`.
-- Keep commits coherent. Capsule code stays here; generic server behavior stays in core; deployment stays in infra.
+- Keep commits coherent. Capsule code stays here; generic owner behavior stays in owner repos; gateway/deployment stays in infra.
 
 ## RAGE work order
 
@@ -55,6 +55,6 @@ This repository is the canonical home of Samsung/Bixby-facing StarIntel integrat
 4. Operations capsule models/actions/views/training and confirmation flows.
 5. Freeze versioned `/v1/bixby/...` contract + fixtures.
 6. Run every locally available capsule/contract validation gate.
-7. Implement only the Samsung-specific projections in the optional `starintel-bixby` server add-on, delegating to exact-head-green generic owner APIs.
-8. Expose StarIntel Server + add-on through existing `starintel-infra` ingress; do not create a parallel gateway service.
+7. Implement `starintel-bixby-gateway` in `starintel-labs/starintel-infra`, delegating to exact-head-green generic owner APIs.
+8. Expose only the gateway/OAuth surface through existing infra ingress; keep internal owner services private.
 9. Verify exact-head CI and document the remaining Samsung Developer Center/Simulator/Galaxy manual gate truthfully.

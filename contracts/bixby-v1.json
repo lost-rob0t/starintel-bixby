@@ -1,0 +1,26 @@
+{
+  "version": "v1",
+  "owner": "starintel-labs/starintel-infra:starintel-bixby-gateway",
+  "basePath": "/v1/bixby",
+  "routes": [
+    {"path":"/v1/bixby/person/resolve","method":"POST","authorization":"optional-user","confirmationRequired":false,"operation":"resolve-person"},
+    {"path":"/v1/bixby/documents/search","method":"POST","authorization":"optional-user","confirmationRequired":false,"operation":"search-documents","defaultLimit":5,"maxLimit":10},
+    {"path":"/v1/bixby/targets/prepare","method":"POST","authorization":"required-user","confirmationRequired":false,"operation":"prepare-target"},
+    {"path":"/v1/bixby/targets/commit","method":"POST","authorization":"required-user","confirmationRequired":true,"operation":"create-target","upstreamScope":"targets:dispatch","idempotencyRequired":true},
+    {"path":"/v1/bixby/autodig/status","method":"POST","authorization":"required-user","confirmationRequired":false,"operation":"autodig-status","capability":"autodig.status"},
+    {"path":"/v1/bixby/autodig/run","method":"POST","authorization":"required-user","confirmationRequired":false,"operation":"autodig-run-get","capability":"autodig.run.get"},
+    {"path":"/v1/bixby/autodig/runs","method":"POST","authorization":"required-user","confirmationRequired":false,"operation":"autodig-run-list","capability":"autodig.run.list"},
+    {"path":"/v1/bixby/autodig/start","method":"POST","authorization":"required-user","confirmationRequired":true,"operation":"autodig-run-start","capability":"autodig.run.start","nonblocking":true},
+    {"path":"/v1/bixby/autodig/pause","method":"POST","authorization":"required-user","confirmationRequired":true,"operation":"autodig-run-pause","capability":"autodig.run.pause"},
+    {"path":"/v1/bixby/autodig/resume","method":"POST","authorization":"required-user","confirmationRequired":true,"operation":"autodig-run-resume","capability":"autodig.run.resume"},
+    {"path":"/v1/bixby/autodig/stop","method":"POST","authorization":"required-user","confirmationRequired":true,"operation":"autodig-run-stop","capability":"autodig.run.stop"}
+  ],
+  "errors": ["UNAUTHORIZED","FORBIDDEN","INVALID_REQUEST","PERSON_NOT_FOUND","AMBIGUOUS_PERSON","DOCUMENTS_NOT_FOUND","TARGET_TYPE_UNSUPPORTED","ACTOR_UNSUPPORTED","AUTODIG_CAPABILITY_UNAVAILABLE","AUTODIG_RUN_NOT_FOUND","RATE_LIMITED","UPSTREAM_TIMEOUT","UPSTREAM_UNAVAILABLE","INTERNAL_ERROR"],
+  "invariants": {
+    "rawBackendObjects": false,
+    "privateUrls": false,
+    "voiceSuppliedTransportTopology": false,
+    "mutationBeforeConfirmation": false,
+    "autodigRuntimeAuthority": "capability-discovered-owner-control-plane"
+  }
+}

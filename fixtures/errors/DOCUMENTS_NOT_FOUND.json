@@ -1,0 +1,1 @@
+{"status":404,"request":{"query":"missing"},"response":{"error":{"code":"DOCUMENTS_NOT_FOUND","message":"No matching documents were found."}}}
