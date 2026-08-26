@@ -16,7 +16,7 @@ class OperationsAutoDigCapsuleTests(unittest.TestCase):
         self.assertEqual(
             auth["requiredScopes"],
             [
-                "starintel.targets.write",
+                "targets:dispatch",
                 "starintel.autodig.read",
                 "starintel.autodig.control",
             ],

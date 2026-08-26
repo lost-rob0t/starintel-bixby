@@ -94,7 +94,7 @@ class OperationsTargetCapsuleTests(unittest.TestCase):
         self.assertEqual("user", requirements["principalMode"])
         self.assertEqual(
             [
-                "starintel.targets.write",
+                "targets:dispatch",
                 "starintel.autodig.read",
                 "starintel.autodig.control",
             ],

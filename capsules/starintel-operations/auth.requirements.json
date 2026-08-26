@@ -2,12 +2,12 @@
   "authorizationType": "oauth2-authorization-code",
   "principalMode": "user",
   "requiredScopes": [
-    "starintel.targets.write",
+    "targets:dispatch",
     "starintel.autodig.read",
     "starintel.autodig.control"
   ],
   "forwardVivContext": false,
   "credentialOwner": "Samsung Developer Center Configuration & Secrets",
   "upstreamAuthority": "StarIntel human principal",
-  "notes": "Operations uses one StarIntel human principal with target-write plus bounded Auto-Dig read/control scopes. Internal Quasar service authority remains behind the gateway."
+  "notes": "Operations uses one StarIntel human principal with canonical target dispatch authority plus bounded Auto-Dig read/control scopes. Internal Quasar service authority remains behind the optional StarIntel Bixby add-on boundary."
 }
